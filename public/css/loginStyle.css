@@ -1,0 +1,117 @@
+/* BLOQUEO TOTAL: evita que el login herede estilos globales de home/header */
+.login-container * {
+    all: revert;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    margin: -20px;
+    overflow: hidden;
+}
+
+body {
+    /* PREGUNTAR SUSO DONDE PONER EL CSS IMG Y JS */
+    background-image: url(../img/fondoLoginRegister.png);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+
+    font-family: Arial, sans-serif;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    color: white;
+}
+
+/* CONTENEDOR */
+.login-container {
+    display: flex;
+    flex-direction: column;
+    width: 380px;
+
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    padding: 40px;
+    border-radius: 15px;
+
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* TITULO */
+.login-container h1 {
+    text-align: center;
+    margin-bottom: 20px;
+    text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.7);
+}
+
+/* FORMULARIO */
+.login-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* LABELS */
+.login-container label {
+    font-size: 17px;
+    margin: 10px 0 10px 0;
+    text-align: center;
+}
+
+/* INPUTS */
+.login-container input {
+    padding: 10px;
+    margin-bottom: 15px;
+    border: none;
+    border-radius: 50px;
+    font-size: 14px;
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+}
+
+.login-container input::placeholder {
+    color: rgb(236, 236, 236);
+}
+
+/* BOTON */
+.login-container button {
+    border: none;
+    padding: 12px;
+    margin-bottom: 15px;
+    border-radius: 50px;
+    color: white;
+    background-color: #8f315d;
+    font-size: 15px;
+    cursor: pointer;
+
+    transform: none !important;
+    transition: background-color .2s ease !important;
+}
+
+.login-container button:hover {
+    background-color: #6e2548;
+    transform: none !important;
+}
+
+/* TEXTO Y ENLACES */
+.login-container p {
+    font-size: 15px;
+    text-align: center;
+}
+
+/* ENLACE "Regístrate aquí"*/
+.login-container a {
+    all: unset;
+    color: #5f213e;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.login-container a:hover {
+    text-decoration: underline;
+}

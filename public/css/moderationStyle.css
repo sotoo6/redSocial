@@ -1,0 +1,67 @@
+:root {
+    --body-select-bg: #ff94a6;
+    --body-bg-gradient: radial-gradient(circle, rgba(255,148,166,1) 0%, rgba(255,222,228,1) 75%);
+    --card-bg: rgba(255, 255, 255, 0.45);
+    --select-color: black;
+}
+
+body.dark-mode {
+    --body-select-bg:  #2c3e50;
+    --body-bg-gradient: radial-gradient(circle, rgba(44,62,80,1) 0%, rgba(22,34,48,1) 75%);
+    --card-bg: rgba(0, 0, 0, 0.35);
+    --select-color: white;
+}
+
+body {
+    background: var(--body-bg-gradient);
+}
+
+h1 {
+    text-align: left;
+}
+
+.history-button{
+    margin-bottom: 20px;
+}
+
+.moderation-container {
+    justify-content: flex-start;
+    flex-direction: column;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+    line-height: 1.5;
+    background: var(--card-bg);
+    backdrop-filter: blur(6px);
+    border-radius: 15px;
+    padding: 30px;
+    width: 800px;
+}
+
+.pendiente {
+    background: rgba(255, 255, 255, 0.329);
+    backdrop-filter: none !important;
+    padding: 10px 0;
+    border: none;
+    width: 98%;
+    padding: 10px 10px 10px 10px;
+    margin-top: 20px;
+}
+
+.botones {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.botones button {
+    display: block;
+    background: var(--body-select-bg);
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+p {
+    margin: 20px 0px 0px 0px;
+}

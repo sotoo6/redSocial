@@ -1,0 +1,45 @@
+.notfound-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    padding: 40px;
+}
+
+.notfound-container h1 {
+    font-size: 120px;
+    margin: 0;
+    font-weight: 900;
+}
+
+.notfound-container p {
+    font-size: 22px;
+    opacity: 0.85;
+}
+
+.btn-404 {
+    margin-top: 10px;
+    padding: 12px 28px;
+    border-radius: 30px;
+    background-color: #4a90e2;
+    text-decoration: none;
+    font-size: 18px;
+    color: white;
+    transition: all 0.25s ease;
+}
+
+.btn-404:hover {
+    background-color: #367ac9;
+    transform: scale(1.05);
+}
+
+body.dark-mode .notfound-container h1 {
+    color: #fff;
+}
+
+body.dark-mode .notfound-container p {
+    color: #ddd;
+}

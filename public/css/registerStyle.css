@@ -1,0 +1,112 @@
+html, body {
+    height: 100%;
+    margin: 0;
+    overflow: hidden; 
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    background-image: url(../img/fondoLoginRegister.png);
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    font-family: Arial, sans-serif;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+}
+
+#contenedor {
+    width: 800px;
+    display: flex;
+    justify-content: center;
+
+    background: rgba(255, 255, 255, 0.13);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+
+    padding: 40px 50px;
+    border-radius: 20px;
+
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+}
+
+form {
+    display: flex;
+    gap: 120px;         /* separación entre columnas */
+}
+
+.columna {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Izquierda */
+.izquierda {
+    width: 45%;
+}
+
+.izquierda h1 {
+    text-align: left;
+    margin-bottom: 20px;
+    text-shadow: 0px 0px 5px rgba(0, 0, 0, 0.7);
+}
+
+select {
+    padding: 10px;
+    border-radius: 50px;
+    margin-top: 10px;
+
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    color: white;
+
+    backdrop-filter: blur(10px);
+}
+
+select option {
+    background-color: rgba(82, 35, 97, 0.7);
+    color: white;
+}
+
+/* Derecha */
+.derecha {
+    width: 55%;
+}
+
+label {
+    font-size: 16px;
+    margin: 10px 0 5px 0;
+}
+
+input {
+    padding: 12px;
+    border: none;
+    border-radius: 50px;
+    margin-bottom: 15px;
+
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+
+    color: white;
+}
+
+button {
+    padding: 12px;
+    border: none;
+    border-radius: 50px;
+    color: white;
+    background-color: #8f315d;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    opacity: .9;
+}

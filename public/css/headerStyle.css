@@ -1,0 +1,104 @@
+:root {
+    --body-bg: #ff94a6;
+}
+
+.dark-mode {
+    --body-bg: #2c3e50;
+}
+
+body {
+    margin: 0;
+    font-family: sans-serif;
+}
+
+/* HEADER */
+.main-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 999;
+
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    gap: 20px;
+
+    /* si quieres el blur */
+    backdrop-filter: blur(8px);
+}
+
+/* IZQUIERDA */
+.header-left,
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.header-right{
+    margin-right: 50px;
+}
+
+strong {
+    font-size: 25px;
+    margin-right: 25px;
+}
+
+/* BOTONES Y ENLACES */
+a,
+button {
+    color: inherit;
+    text-decoration: none;
+    font-size: 15px;
+    background-color: var(--body-bg);
+    padding: 6px 14px;
+    border-radius: 25px;
+    box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.25);
+    transition: transform 0.20s ease;
+    cursor: pointer;
+    border: none;
+}
+
+/* HOVER ANIMADO */
+a:hover,
+button:hover {
+    transform: translateY(-3px);
+}
+
+/* FORM */
+form {
+    display: inline;
+}
+
+/* BOTÓN LOGOUT */
+.logout-btn {
+    all: unset;
+    background-color: var(--body-bg);
+    padding: 6px 14px;
+    border-radius: 25px;
+    box-shadow: 2px 2px 7px rgba(0, 0, 0, 0.25);
+    cursor: pointer;
+    transition: transform 0.20s ease;
+    font-size: 15px;
+}
+
+/* HOVER DEL LOGOUT */
+.logout-btn:hover {
+    transform: translateY(-3px);
+}
+
+header.main-header {
+    background: white;
+    color: black;
+}
+
+header.main-header.dark-mode {
+    background: #0d1117;
+    color: white;
+}
+
+header.main-header.dark-mode a {
+    color: white;
+}

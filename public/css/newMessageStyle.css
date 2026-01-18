@@ -1,0 +1,55 @@
+:root {
+    --body-select-bg: #ff94a6;
+    --body-bg-gradient: radial-gradient(circle, rgba(255,148,166,1) 0%, rgba(255,222,228,1) 75%);
+    --card-bg: rgba(255, 255, 255, 0.45);
+    --select-color: black;
+}
+
+body.dark-mode {
+    --body-select-bg:  #2c3e50;
+    --body-bg-gradient: radial-gradient(circle, rgba(44,62,80,1) 0%, rgba(22,34,48,1) 75%);
+    --card-bg: rgba(0, 0, 0, 0.35);
+    --select-color: white;
+}
+
+body {
+    background: var(--body-bg-gradient);
+}
+
+.nuevo-mensaje-container {
+    display: flex;
+    justify-content: flex-start;
+    flex-direction: column;
+    background: var(--card-bg);
+    backdrop-filter: blur(6px);
+    border-radius: 15px;
+    padding: 30px;
+    width: 800px;
+}
+
+h1 {
+    text-align: left;
+}
+
+#limite{
+    display: block;
+}
+
+select{
+    background-color: var(--body-select-bg);
+    color: var(--select-color);
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    margin-left: 10px;
+}
+
+textarea{
+    display: block;
+    margin: 15px 0px 0px 0px;
+    width: 98%;
+    max-width: 98%;
+    min-width: 98%;
+    padding: 10px;
+}
+
