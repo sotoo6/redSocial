@@ -36,10 +36,10 @@
     transform: scale(1.05);
 }
 
-body.dark-mode .notfound-container h1 {
+body.dark .notfound-container h1 {
     color: #fff;
 }
 
-body.dark-mode .notfound-container p {
+body.dark .notfound-container p {
     color: #ddd;
 }

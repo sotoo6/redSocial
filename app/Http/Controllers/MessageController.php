@@ -16,10 +16,20 @@ class MessageController extends Controller
     }
 
     // Mostrar mensajes publicados (home)
-    public function index()
+    public function index(Request $request)
     {
-        $messages = $this->messages->getPublished();
-        return view('messages.index', compact('messages'));
+        $subject = $request->query('subject', 'todas'); // valor por defecto
+        $subjects = ['Desarrollo Web Entorno Servidor', 'Digitalización', 'Despliegue', 'Inglés', 'Empresa'];
+
+        if ($subject === 'todas') {
+            $messages = $this->messages->getPublished();
+        } else {
+            $messages = array_filter($this->messages->getPublished(), function ($m) use ($subject) {
+                return $m['subject'] === $subject;
+            });
+        }
+
+        return view('messages.index', compact('messages', 'subjects'));
     }
 
     // Formulario nuevo mensaje
@@ -47,7 +57,7 @@ public function create(Request $request)
         'puta','puto','gilipollas','mierda','hostia','joder',
         'coño','cabrón','cabron','idiota','imbécil','imbecil',
         'subnormal', 'hijo de puta', 'maricon','maricón',
-        'perra', 'cara polla', 'comemierda'
+        'perra', 'cara polla', 'comemierda', 'polla'
     ];
 
     // Comprobaciones de seguridad
@@ -78,13 +88,19 @@ public function create(Request $request)
 
     $this->messages->save($message->toArray());
 
-    // Respuesta visual
+    // Si el mensaje es válido → mostrar en la misma vista
     if ($status === 'pending') {
-        return redirect('/')
-            ->with('success', 'Tu mensaje está pendiente de moderación.');
+        return view('messages.new_message', [
+            'messagePending' => $message->toArray(),
+            'subjects' => ['Desarrollo Web Entorno Servidor', 'Digitalización', 'Despliegue', 'Inglés', 'Empresa']
+        ]);
     } else {
-        return redirect('/')
-            ->with('success', 'El mensaje contenía contenido no permitido y ha sido enviado al historial de mensajes rechazados.');
+        // Si el mensaje fue rechazado, también mostrarlo
+        return view('messages.new_message', [
+            'messagePending' => $message->toArray(),
+            'subjects' => ['Desarrollo Web Entorno Servidor', 'Digitalización', 'Despliegue', 'Inglés', 'Empresa'],
+            'rejected' => true
+        ]);
     }
 }
 

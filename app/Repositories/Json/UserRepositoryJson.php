@@ -35,4 +35,18 @@ class UserRepositoryJson implements IUserRepository
         $users[] = $user;
         file_put_contents($this->file, json_encode($users, JSON_PRETTY_PRINT));
     }
+
+    public function update(array $userData): void
+    {
+        $users = $this->all();
+
+        foreach ($users as &$u) {
+            if (($u['email'] ?? '') === ($userData['email'] ?? '')) {
+                $u = $userData;
+                break;
+            }
+        }
+
+        file_put_contents($this->file, json_encode($users, JSON_PRETTY_PRINT));
+    }
 }

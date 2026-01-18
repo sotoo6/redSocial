@@ -39,10 +39,21 @@
 
     <label id="limite" for="text">Mensaje (1-280 caracteres):</label>
     <textarea id="text" name="text" maxlength="280" required></textarea>
+    
+    <br><br>
+    
+    <button type="submit">Publicar</button>
 
     <br><br>
 
-    <button type="submit">Publicar</button>
+    @if (isset($messagePending))
+        <p style="color: {{ isset($rejected) ? 'red' : 'green' }}; margin-top: 10px;">
+            {{ isset($rejected)
+                ? 'El mensaje contenía contenido no permitido y ha sido enviado al historial de mensajes rechazados.'
+                : 'Tu mensaje está pendiente de moderación.'
+            }}
+        </p>
+    @endif
 </form>
 </div>
 @endsection

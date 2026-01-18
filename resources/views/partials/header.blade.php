@@ -40,10 +40,12 @@
     </div>
 
     <div class="header-right">
-        {{-- Cambiar tema (necesitas tener esta ruta hecha) --}}
-        <a href="{{ url('/theme/toggle') . '?return=' . urlencode($returnUrl) }}">
-            Cambiar tema
-        </a>
+        <form action="{{ route('theme.toggle') }}" method="GET" style="display:inline;">
+            <input type="hidden" name="return" value="{{ url()->current() }}">
+            <button type="submit" class="theme-toggle">
+                Cambiar tema
+            </button>
+        </form>
 
         {{-- Logout por POST --}}
         <form method="POST" action="{{ url('/logout') }}"

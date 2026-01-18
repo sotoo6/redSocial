@@ -30,7 +30,7 @@ li {
     text-align: left;
 }
 
-/* .volver-btn {
+.volver-btn {
     background: var(--card-bg);
     padding: 10px 18px;
     border-radius: 10px;
@@ -38,7 +38,7 @@ li {
     color: var(--option-color);
     font-weight: bold;
     backdrop-filter: blur(4px);
-} */
+}
 
 .autor {
     font-weight: bold;

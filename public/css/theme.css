@@ -1,0 +1,32 @@
+:root {
+    --color-bg: #ffffff;
+    --color-text: #000000;
+    --color-card-text: #000000;
+}
+
+body.dark {
+    --color-bg: #121212;
+    --color-text: #f5f5f5;
+    --color-card-bg: #1e1e1e;
+    --color-card-text: #f5f5f5;
+}
+
+/* Fondo y texto global */
+body {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Contenedores, tarjetas, etc. */
+.mensaje, .pendiente, .moderation-container, .home-container {
+    color: var(--color-card-text);
+    transition: background-color 0.3s ease, color 0.3s ease;
+    
+}
+
+/* Botones */
+button, .history-button {
+    color: var(--color-card-text);
+    transition: all 0.3s ease;
+}

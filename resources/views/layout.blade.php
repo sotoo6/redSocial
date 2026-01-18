@@ -8,10 +8,11 @@
 
     <link rel="stylesheet" href="{{ asset('css/headerStyle.css') }}">
     <link rel="stylesheet" href="{{ asset('css/homeStyle.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
 
     @yield('styles')
 </head>
-<body>
+<body class="{{ session('user.theme', cookie('theme', 'light')) }}">
     @if(session()->has('user'))
         @include('partials.header')
     @endif

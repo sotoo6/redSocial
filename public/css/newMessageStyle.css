@@ -5,7 +5,7 @@
     --select-color: black;
 }
 
-body.dark-mode {
+body.dark {
     --body-select-bg:  #2c3e50;
     --body-bg-gradient: radial-gradient(circle, rgba(44,62,80,1) 0%, rgba(22,34,48,1) 75%);
     --card-bg: rgba(0, 0, 0, 0.35);

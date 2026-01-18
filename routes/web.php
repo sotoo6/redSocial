@@ -54,3 +54,7 @@ Route::post('/moderation/{id}/reject', [MessageController::class, 'reject'])
 Route::get('/moderation/invalid', [MessageController::class, 'invalid'])
     ->name('moderation.invalid')
     ->middleware(['authsession', 'role:profesor']);
+
+Route::get('/theme/toggle', [App\Http\Controllers\ThemeController::class, 'toggle'])
+    ->middleware('authsession')
+    ->name('theme.toggle');

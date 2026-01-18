@@ -106,6 +106,7 @@ class AuthController extends Controller
             'name'  => $user['name'],
             'email' => $user['email'],
             'role'  => $user['role'],
+            'theme' => $user['theme'] ?? 'light',
         ]);
 
         // Guardar cookie del tema igual que en P8

@@ -5,7 +5,7 @@
     --select-color: black;
 }
 
-body.dark-mode {
+body.dark {
     --body-select-bg:  #2c3e50;
     --body-bg-gradient: radial-gradient(circle, rgba(44,62,80,1) 0%, rgba(22,34,48,1) 75%);
     --card-bg: rgba(0, 0, 0, 0.35);
@@ -22,6 +22,7 @@ h1 {
 
 .history-button{
     margin-bottom: 20px;
+    border: none;
 }
 
 .moderation-container {
@@ -42,9 +43,12 @@ h1 {
     backdrop-filter: none !important;
     padding: 10px 0;
     border: none;
-    width: 98%;
+    border-radius: 10px;
+    width: 100%;
     padding: 10px 10px 10px 10px;
     margin-top: 20px;
+    list-style: none;
+    margin-left: -35px;
 }
 
 .botones {
