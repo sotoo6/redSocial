@@ -9,12 +9,11 @@
     <label for="subject-filter">Filtrar por asignatura:</label>
 
     <select name="subject" id="subject-filter">
-        <option value="todas" {{ request('subject') === 'todas' ? 'selected' : '' }}>Todas</option>
-
+        <option value="todas" {{ request('subject','todas') === 'todas' ? 'selected' : '' }}>Todas</option>
         @foreach ($subjects as $subj)
-            <option value="{{ $subj }}" {{ request('subject') === $subj ? 'selected' : '' }}>
-                {{ $subj }}
-            </option>
+        <option value="{{ $subj }}" {{ request('subject','todas') === $subj ? 'selected' : '' }}>
+            {{ $subj }}
+        </option>
         @endforeach
     </select>
 
