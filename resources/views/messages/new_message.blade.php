@@ -26,7 +26,7 @@
     <label for="subject">Asignatura:</label>
     <select name="subject" id="subject">
         <option value="Desarrollo Web Entorno Servidor">Desarrollo Web Entorno Servidor</option>
-        <option value="Desarrollo Web Entorno  Cliente">Desarrollo Web Entorno Cliente</option>
+        <option value="Desarrollo Web Entorno Cliente">Desarrollo Web Entorno Cliente</option>
         <option value="Diseño Interfaces">Diseño Interfaces</option>
         <option value="Despliegue">Despliegue</option>
         <option value="Digitalización">Digitalización</option>

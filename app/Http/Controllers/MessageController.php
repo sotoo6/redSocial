@@ -18,16 +18,24 @@ class MessageController extends Controller
     // Mostrar mensajes publicados (home)
     public function index(Request $request)
     {
-        $subject = $request->query('subject', 'todas'); // valor por defecto
-        $subjects = ['Desarrollo Web Entorno Servidor', 'Digitalización', 'Despliegue', 'Inglés', 'Empresa'];
+        $subject = $request->query('subject', 'todas');
 
-        if ($subject === 'todas') {
-            $messages = $this->messages->getPublished();
-        } else {
-            $messages = array_filter($this->messages->getPublished(), function ($m) use ($subject) {
-                return $m['subject'] === $subject;
-            });
-        }
+        $subjects = [
+            'Desarrollo Web Entorno Servidor',
+            'Desarrollo Web Entorno Cliente',
+            'Diseño Interfaces',
+            'Despliegue',
+            'Digitalización',
+            'Itinerario Personal',
+            'Inglés',
+            'Afondamiento',
+        ];
+
+        $published = $this->messages->getPublished();
+
+        $messages = ($subject === 'todas')
+            ? $published
+            : array_values(array_filter($published, fn($m) => ($m['subject'] ?? '') === $subject));
 
         return view('messages.index', compact('messages', 'subjects'));
     }
