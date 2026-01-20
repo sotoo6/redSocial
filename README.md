@@ -18,7 +18,55 @@
         <h2>Patrón Repository</h2>
         <p>En el proyecto se ha aplicado el patrón Repository, implementado en la carpeta app/Repositories, con el objetivo de abstraer la lógica de acceso a los datos y separarla de la lógica de negocio. En lugar de utilizar una base de datos, la persistencia de la información se realiza mediante archivos JSON, gestionados desde repositorios específicos como UserRepositoryJson y MessageRepositoryJson. Esto nos permite en un futuro, que el sistema de persistencia pueda cambiarse (por ejemplo, a una base de datos) sin necesidad de modificar la lógica principal de la aplicación.</p>
     </li>
-    <li>Instrucciones de instalación y arranque en local</li>
+    <li>Instrucciones de instalación y arranque en local
+        <p>Las siguientes instrucciones tienen como objetivo guiarte en el proceso de obtención del código fuente y la configuración del entorno necesario para ejecutar este proyecto en tu máquina local o en una máquina virtual.</p>
+        <h2>Prerrequisitos</h2>
+        <p>Este proyecto está desarrollado con el framework Laravel. Se asume que el entorno donde se desplegará cuenta previamente con PHP y el gestor de dependencias Composer instalados (por ejemplo, mediante XAMPP en Linux o una instalación nativa en Ubuntu).
+</p>
+    <h2>Pasos de Instalación</h2>
+    <ol>
+        <li>Obtención del código fuente
+            <p>Para comenzar, es necesario clonar el repositorio en el directorio de trabajo de tu máquina virtual o servidor local. Utiliza el siguiente comando:</p>
+            <code>git clone https://github.com/sotoo6/redSocial.git </code>
+            <code>cd redSocial</code>
+        </li>
+        <li>Instalación de dependencias
+            <p>Dado que el repositorio no incluye las librerías del núcleo de Laravel ni paquetes de terceros, es necesario instalarlos manualmente. El siguiente comando leerá el archivo <code>composer.json</code> y descargará todas las dependencias requeridas en la carpeta <code>vendor</code>:</p>
+            <code>composer install</code>
+        </li>
+        <li>Configuración del entorno
+            <p>El proyecto ya incluye el archivo de configuración principal .env en el directorio raíz, por lo que no es necesario crearlo manualmente.
+</p>
+            <p>Nota: Si por alguna razón el archivo no existiera, puedes generar uno copiando el archivo de ejemplo: <code>cp .env.example .env.</code></p>
+            <p>Esta aplicación ha sido diseñada para utilizar persistencia de datos en archivos JSON (ubicados en <code>storage/app/data/</code>) y drivers de archivo para el manejo de sesiones. Por lo tanto, no es necesario configurar ni arrancar una base de datos relacional (como MySQL) para su funcionamiento.
+</p>
+        </li>
+        <li>Verificación de archivos de datos
+            <p>Para evitar errores de lectura al iniciar la aplicación, asegúrate de que existen los archivos de almacenamiento con una estructura válida. Ejecuta estos comandos para crearlos si no existen</p>
+            <code>mkdir -p storage/app/data</code>
+            <code>echo "[]" > storage/app/data/users.json </code>
+            <code>echo "[]" > storage/app/data/messages.json</code>
+        </li>
+        <li>Generación de la clave de aplicación
+            <p>Aunque dispongas del archivo de entorno, Laravel requiere asegurar que exista una clave de encriptación válida configurada para gestionar la seguridad de las sesiones. Puedes generar o regenerar esta clave ejecutando el comando (usando el PHP de XAMPP para evitar conflictos):</p>
+            <code>/opt/lampp/bin/php artisan key:generate</code>
+        </li>
+        <li>Permisos de escritura
+            <p>Debido a que la arquitectura del proyecto almacena la información de usuarios y mensajes en archivos físicos dentro del directorio <code>storage</code>, es indispensable que el servidor web disponga de permisos de escritura en estas carpetas. De no concederse estos permisos, acciones como el registro de usuarios fallarán.</p>
+            <p>Ejecuta el siguiente comando para asignar los permisos necesarios:</p>
+            <code>chmod -R 775 storage bootstrap/cache</code>
+        </li>
+        <li>Ejecución del Servidor
+            <p>Para iniciar el entorno de desarrollo, se utiliza el servidor interno proporcionado por Artisan (invocando el PHP de XAMPP). Se recomienda especificar el host y el puerto para asegurar la accesibilidad externa:</p>
+            <code>/opt/lampp/bin/php artisan serve --host=0.0.0.0 --port=8000</code>
+            <p>Una vez ejecutado el comando, la aplicación estará accesible dependiendo de tu método de conexión:</p>
+            <ul>
+                <li>Si usas VS Code (Remote-SSH) o estás dentro de la VM: Accede a <code>http://localhost:8000</code> (el editor reenviará el puerto automáticamente).</li>
+                <li>Si accedes desde Windows/Mac sin reenvío de puertos: Deberás usar la IP de la máquina virtual: <code>http://<IP_DE_TU_VM>:8000</code> (puedes consultar tu IP ejecutando <code>hostname -I</code> en la terminal).</li>
+            </ul>
+        </li>
+    </ol>
+    </li>
     <li>Listado de rutas y roles requeridos</li>
     <li>Validación y sanitización implementada</li>
     <li>Usuarios de prueba (al menos 1 alumno y 1 profesor)</li>
