@@ -28,6 +28,7 @@
         <li>Obtención del código fuente
             <p>Para comenzar, es necesario clonar el repositorio en el directorio de trabajo de tu máquina virtual o servidor local. Utiliza el siguiente comando:</p>
             <code>git clone https://github.com/sotoo6/redSocial.git </code>
+            <br>
             <code>cd redSocial</code>
         </li>
         <li>Instalación de dependencias
@@ -44,7 +45,9 @@
         <li>Verificación de archivos de datos
             <p>Para evitar errores de lectura al iniciar la aplicación, asegúrate de que existen los archivos de almacenamiento con una estructura válida. Ejecuta estos comandos para crearlos si no existen</p>
             <code>mkdir -p storage/app/data</code>
+            <br>
             <code>echo "[]" > storage/app/data/users.json </code>
+            <br>
             <code>echo "[]" > storage/app/data/messages.json</code>
         </li>
         <li>Generación de la clave de aplicación
@@ -67,7 +70,59 @@
         </li>
     </ol>
     </li>
-    <li>Listado de rutas y roles requeridos</li>
+    <li>Listado de rutas y roles requeridos
+        <ol>
+            <li>Rutas públicas
+                <ul>
+                    <li>GET /
+                        <p>Ruta raíz de la aplicación.</p>
+                        <p>El comportamiento depende del estado de sesión:</p>
+                        <ul>
+                            <li>Si el usuario NO está autenticado se redirige automáticamente a /login.</li>
+                            <li>Si el usuario SÍ está autenticado se redirige a /home, donde se muestran los mensajes publicados.</li>
+                        </ul>
+                        <p>Esta ruta sirve como punto de entrada general y garantiza que cada usuario sea enviado a la vista adecuada según su estado.</p>
+                    </li>
+                    <li>GET /login
+                        <p>Muestra el formulario de inicio de sesión.</p>
+                        <p>Contiene los campos de email y contraseña, la cual se hashea en SHA-256 en el frontend antes de enviarse al servidor.</p>
+                    </li>
+                    <li>POST /login
+                        <p>Procesa los datos enviados desde el formulario de inicio de sesión.</p>
+                        <p>Acciones realizadas:</p>
+                        <ul>
+                            <li>Comprueba que se han introducido email y contraseña.</li>
+                            <li>Busca el usuario en users.json.</li>
+                            <li>Verifica la contraseña hasheada usando password_verify() sobre el hash almacenado.</li>
+                            <li>Ejecuta session_regenerate_id(true) para evitar fijación de sesión.</li>
+                            <li>Guarda en $_SESSION['user'] los datos mínimos del usuario (id, nombre, email, rol, tema).</li>
+                            <li>Redirige a /home si todo es correcto. En caso de error, vuelve a mostrar la vista /login con un mensaje de error.</li>
+                        </ul>
+                    </li>
+                    <li>POST /logout
+                        <p>Método que se usa para cerrar sesión.</p>
+                    </li>
+                    <li>GET /register
+                        <p>Muestra el formulario de registro donde se introducen nombre, email, contraseña y un rol (alumno o profesor). La contraseña se hashea en SHA-256 en el navegador antes de enviarse al servidor.</p>
+                    </li>
+                    <li>POST /register
+                        <p>Procesa el registro de un nuevo usuario. Acciones que realiza:</p>
+                        <ul>
+                            <li>Comprueba que los campos requeridos no estén vacíos.</li>
+                            <li>Recibe la contraseña hasheada en SHA-256 desde el frontend.</li>
+                            <li>Vuelve a hashear ese valor con password_hash() para almacenarlo de forma segura.</li>
+                            <li>Guarda el nuevo usuario en users.json con un ID aleatorio y tema por defecto.</li>
+                            <li>Regenera la sesión para evitar problemas de seguridad.</li>
+                            <li>Redirige a /login para que el usuario pueda autenticarse.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>Rutas protegidas (requieren sesión)</li>
+            <li>Moderación (solo profesores)</li>
+            <li>Preferencias</li>
+        </ol>
+    </li>
     <li>Validación y sanitización implementada</li>
     <li>Usuarios de prueba (al menos 1 alumno y 1 profesor)</li>
 </ol>
