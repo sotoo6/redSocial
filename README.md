@@ -118,8 +118,41 @@
                     </li>
                 </ul>
             </li>
-            <li>Rutas protegidas (requieren sesión)</li>
-            <li>Moderación (solo profesores)</li>
+            <li>Rutas protegidas (requieren sesión)
+                <p>Estas rutas solo pueden usarse si el usuario está autenticado. En caso contrario, se redirige automáticamente a /login.</p>
+                <ul>
+                    <li>GET /home
+                        <p>Vista principal del usuario logueado. Muestra únicamente los mensajes cuyo estado es published, tal y como exige el enunciado.</p>
+                        <p>Gestionado por el controlador <code>MessageController::listMessages()</code>.</p>
+                    </li>
+                    <li>GET /messages/new
+                        <p> Formulario para que el usuario cree un nuevo mensaje y seleccione una asignatura. Disponible para alumnos y profesores.</p>
+                    </li>
+                    <li>POST /messages
+                        <p>Procesa el envío de un nuevo mensaje:</p>
+                        <ul>
+                            <li>Valida que el texto tenga entre 1 y 280 caracteres.</li>
+                            <li>Revisa que no haya patrones peligrosos (<code>script</code>, <code>onerror=</code>, <code>drop table</code>...).</li>
+                            <li>Comprueba que no haya palabrotas o contenido inapropiado.</li>
+                            <li>Si es válido, guarda el mensaje con estado pending en messages.json.</li>
+                            <li>El mensaje quedará visible solo después de ser aprobado por un profesor.</li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li>Moderación (solo profesores)
+                <p>Estas rutas están reservadas para usuarios con rol profe. Si un alumno intenta acceder, es redirigido al /home.</p>
+                <ul>
+                    <li>GET /moderation
+                        <p>Muestra la cola de mensajes pendientes de moderación. Cada mensaje aparece con su autor, asignatura y texto, junto con botones para aprobar o rechazar.</p>
+                    </li>
+                    <li>POST /moderation/{id}/approve
+                        <p>Actualiza el estado del mensaje seleccionado a published. Tras actualizar el JSON, redirige de vuelta a la vista de moderación.</p>
+                    </li>
+                    <li>POST /moderation/{id}/reject</li>
+                    <li>GET /moderation/invalid</li>
+                </ul>
+            </li>
             <li>Preferencias</li>
         </ol>
     </li>
