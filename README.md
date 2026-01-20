@@ -341,7 +341,7 @@
     <ul>
       <li>Nombre: Alumno</li>
       <li>Email: alumno@gmail.com</li>
-      <li>Contraseña: alumno@gmail.com</li>
+      <li>Contraseña: alumno321</li>
     </ul>
   </li>
 </ol>
