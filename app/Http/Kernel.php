@@ -55,7 +55,7 @@ class Kernel extends HttpKernel
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'bindings' => \Illuminate\Routing\Middleware\SubstituteBindings::class,
 
-        // === MIDDLEWARE PERSONALIZADOS ===
+        // MIDDLEWARE PERSONALIZADOS
 
         // Middleware propio equivalente a comprobar $_SESSION['user']
         'authsession' => \App\Http\Middleware\AuthSession::class,

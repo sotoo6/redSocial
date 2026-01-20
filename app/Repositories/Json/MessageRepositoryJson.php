@@ -39,7 +39,7 @@ class MessageRepositoryJson implements IMessageRepository
     {
         $messages = $this->all();
 
-        // Si el mensaje ya tiene un ID (por ejemplo uniqid), no lo tocamos
+        // Si el mensaje ya tiene un ID, no lo tocamos
         if (!isset($message['id'])) {
             // id autoincremental solo si no hay id previo
             $nextId = 1;

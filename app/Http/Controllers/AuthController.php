@@ -12,7 +12,6 @@ class AuthController extends Controller
 
     /**
      * Inyectamos el repositorio de usuarios.
-     * En P11 será JSON, en P12 será BD.
      */
     public function __construct(IUserRepository $users)
     {
@@ -29,11 +28,9 @@ class AuthController extends Controller
 
     /**
      * Procesa el registro (POST).
-     * Lógica basada en tu práctica 8.
      */
     public function register(Request $request)
     {
-        // Validación equivalente a tu P8
         $data = $request->validate([
             'name'     => ['required', 'string'],
             'email'    => ['required', 'email'],
@@ -49,7 +46,7 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        // Igual que en P8: password llega en SHA-256, pero aplicamos password_hash
+        // password llega en SHA-256, pero aplicamos password_hash
         $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
 
         // Creamos el modelo POO
@@ -60,10 +57,10 @@ class AuthController extends Controller
             $data['role']
         );
 
-        // Guardamos en JSON (Repositorios → JSON)
+        // Guardamos en JSON
         $this->users->save($user->toArray());
 
-        // Rotar ID de sesión (igual que P8)
+        // Rotar ID de sesión
         $request->session()->regenerate();
 
         return redirect('/login')->with('status', 'Usuario registrado correctamente');
@@ -78,11 +75,11 @@ class AuthController extends Controller
     }
 
     /**
-     * Procesa login basado en tu P8.
+     * Procesa login
      */
     public function login(Request $request)
     {
-        // Validación equivalente a P8
+        // Validación
         $data = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'string'], // llega SHA-256 desde JS
@@ -98,7 +95,7 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        // Rotar ID como en P8
+        // Rotar ID
         $request->session()->regenerate();
 
         // Guardamos datos mínimos en sesión
@@ -109,7 +106,7 @@ class AuthController extends Controller
             'theme' => $user['theme'] ?? 'light',
         ]);
 
-        // Guardar cookie del tema igual que en P8
+        // Guardar cookie del tema
         cookie()->queue(
             'theme',
             $user['theme'] ?? 'light',
@@ -124,14 +121,14 @@ class AuthController extends Controller
     }
 
     /**
-     * Cierra sesión (como en P8).
+     * Cierra sesión
      */
     public function logout(Request $request)
     {
         // Elimina datos de sesión
         $request->session()->forget('user');
 
-        // Invalida sesión y token (equivalente a session_destroy + regenerate)
+        // Invalida sesión y token
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
