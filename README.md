@@ -345,3 +345,5 @@
     </ul>
   </li>
 </ol>
+
+<footer>Lucía Soto y Andrea Pollán</footer>
