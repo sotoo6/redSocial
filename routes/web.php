@@ -55,6 +55,9 @@ Route::get('/moderation/invalid', [MessageController::class, 'invalid'])
     ->name('moderation.invalid')
     ->middleware(['authsession', 'role:profesor']);
 
+// ---------------------------
+// COLOR DE TEMA
+// ---------------------------
 Route::get('/theme/toggle', [App\Http\Controllers\ThemeController::class, 'toggle'])
     ->middleware('authsession')
     ->name('theme.toggle');
