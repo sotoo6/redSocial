@@ -10,7 +10,8 @@ class Authsession
     public function handle(Request $request, Closure $next)
     {
         if (!session()->has('user')) {
-            return redirect('/login');
+            // En vez de redirect('/login'):
+            return response()->view('auth.must_login', [], 403);
         }
 
         return $next($request);
