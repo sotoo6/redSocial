@@ -14,9 +14,9 @@ class CheckRole
     {
         $user = session('user');
 
-        // Si no hay usuario o el rol no coincide, redirigir al home
+        // Si no hay usuario o el rol no coincide -> pantalla de "sin permisos"
         if (!$user || ($user['role'] ?? null) !== $role) {
-            return redirect('/');
+            return response()->view('auth.no_permission', [], 403);
         }
 
         return $next($request);
