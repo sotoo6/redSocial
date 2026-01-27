@@ -23,6 +23,8 @@
     <p>
       En el proyecto se ha aplicado el patrón Repository, implementado en la carpeta app/Repositories, con el objetivo de abstraer la lógica de acceso a los datos y separarla de la lógica de negocio. En lugar de utilizar una base de datos, la persistencia de la información se realiza mediante archivos JSON, gestionados desde repositorios específicos como UserRepositoryJson y MessageRepositoryJson. Esto nos permite en un futuro, que el sistema de persistencia pueda cambiarse (por ejemplo, a una base de datos) sin necesidad de modificar la lógica principal de la aplicación.
     </p>
+    <h3>Patrón Modelo Vista Controlador (MVC)</h3>
+    <p>En el proyecto se ha aplicado el patrón Modelo Vista Controlador (MVC), propio del framework Laravel, con el objetivo de separar responsabilidades y mejorar la organización del código. Los controladores gestionan las peticiones y la lógica principal de la aplicación, las vistas se encargan de mostrar la información al usuario y los modelos sirven como apoyo para estructurar y manejar los datos, aunque la persistencia se realiza mediante archivos JSON.</p>
   </li>
 
   <li>
