@@ -24,7 +24,32 @@
       En el proyecto se ha aplicado el patrón Repository, implementado en la carpeta app/Repositories, con el objetivo de abstraer la lógica de acceso a los datos y separarla de la lógica de negocio. En lugar de utilizar una base de datos, la persistencia de la información se realiza mediante archivos JSON, gestionados desde repositorios específicos como UserRepositoryJson y MessageRepositoryJson. Esto nos permite en un futuro, que el sistema de persistencia pueda cambiarse (por ejemplo, a una base de datos) sin necesidad de modificar la lógica principal de la aplicación.
     </p>
     <h3>Patrón Modelo Vista Controlador (MVC)</h3>
-    <p>En el proyecto se ha aplicado el patrón Modelo Vista Controlador (MVC), propio del framework Laravel, con el objetivo de separar responsabilidades y mejorar la organización del código. Los controladores gestionan las peticiones y la lógica principal de la aplicación, las vistas se encargan de mostrar la información al usuario y los modelos sirven como apoyo para estructurar y manejar los datos, aunque la persistencia se realiza mediante archivos JSON.</p>
+    <p>El proyecto sigue el patrón de arquitectura MVC para garantizar una separación de responsabilidades clara, facilitando el mantenimiento y la escalabilidad del código.</p>
+    <ul>
+        <li><h4>Modelo</h4>
+            <p>Ubicados en <code>app/Models/</code>, estos archivos representan la estructura de los datos.</p>
+            <ul>
+                <li>Persistencia en JSON: A diferencia de un flujo tradicional, los modelos en este proyecto están diseñados para interactuar con archivos <code>.json</code>.</li>
+                <li>Responsabilidad: Se encargan de la lectura, escritura y mapeo de los datos contenidos en el sistema de archivos, abstrayendo esta lógica de los controladores.</li>
+                <li>Entidades: <code>User.php</code> y <code>Message.php</code>.<</li>
+            </ul>
+        </li>
+        <li><h4>Vista</h4>
+            <p>Ubicadas en <code>resources/views/</code>, definen la interfaz que el usuario final visualiza.</p>
+            <ul>
+                <li>Motor Blade: Utilizamos plantillas Blade para inyectar los datos procesados.</li>
+                <li>Modularidad: El archivo <code>layout.blade.php</code> en la carpeta <code>partials</code> centraliza la estructura HTML, mientras que carpetas como <code>/auth</code> y <code>/messages</code> contienen las interfaces específicas para el flujo de la red social.</li>
+            </ul>
+        </li>
+        <li><h4>Controlador</h4>
+            <p>Ubicados en <code>app/Http/Controllers/</code>, funcionan como el cerebro de la aplicación.</p>
+            <ul>
+                <li>Gestión de solicitudes: Reciben las peticiones del usuario (vía <code>routes/web.php</code>).</li>
+                <li>Lógica de archivos: El controlador solicita al Modelo que lea o guarde información en los JSON y, posteriormente, carga la Vista pertinente con esos datos.</li>
+                <li>Controladores clave: <code>AuthController.php</code> para sesiones y <code>MessageController.php</code> para la gestión de la mensajería y moderación.</li>
+            </ul
+        </li>
+    </ul>
   </li>
 
   <li>
