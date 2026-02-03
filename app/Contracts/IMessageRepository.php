@@ -13,4 +13,5 @@ interface IMessageRepository
     // Acciones de moderación
     public function approve(string|int $id): void;
     public function reject(string|int $id): void;
+    public function delete(string|int $id): void;
 }

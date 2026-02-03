@@ -10,10 +10,11 @@
 
     <select name="subject" id="subject-filter">
         <option value="todas" {{ request('subject','todas') === 'todas' ? 'selected' : '' }}>Todas</option>
+
         @foreach ($subjects as $subj)
-        <option value="{{ $subj }}" {{ request('subject','todas') === $subj ? 'selected' : '' }}>
-            {{ $subj }}
-        </option>
+            <option value="{{ $subj }}" {{ request('subject','todas') === $subj ? 'selected' : '' }}>
+                {{ $subj }}
+            </option>
         @endforeach
     </select>
 
@@ -29,6 +30,17 @@
             <em style="color:grey; font-size:12px;">
                 {{ $m['createdAt'] ?? '' }}
             </em>
+
+            {{-- Botón borrar (solo si el mensaje es del usuario logueado) --}}
+            @if(session('user.name') === ($m['author'] ?? ''))
+                <form method="POST"
+                      action="{{ url('/messages/' . $m['id'] . '/delete') }}"
+                      onsubmit="return confirm('¿Seguro que quieres borrar este mensaje?');"
+                      style="margin-top: 10px;">
+                    @csrf
+                    <button type="submit" class="btn-delete">Borrar</button>
+                </form>
+            @endif
         </div>
     @empty
         <p style="text-align: center;">No hay mensajes publicados todavía.</p>

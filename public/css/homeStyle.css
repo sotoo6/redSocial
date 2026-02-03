@@ -125,3 +125,15 @@ p {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+.btn-delete{
+    margin-top: 10px;
+    background: var(--body-bg);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.btn-delete:hover{
+    opacity: 0.85;
+}

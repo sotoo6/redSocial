@@ -133,6 +133,27 @@ public function create(Request $request)
         return redirect('/moderation');
     }
 
+    // Borrar mensaje
+    public function delete(Request $request, $id)
+    {
+        $msg = $this->messages->find((string)$id);
+
+        if (!$msg) {
+            return redirect('/')->with('status', 'Mensaje no encontrado.');
+        }
+
+        $currentUserName = session('user.name');
+
+        // Solo permite borrar si el mensaje es suyo
+        if (($msg['author'] ?? '') !== $currentUserName) {
+            return redirect('/')->with('status', 'No tienes permisos para borrar este mensaje.');
+        }
+
+        $this->messages->delete($id);
+
+        return redirect('/')->with('status', 'Mensaje borrado correctamente.');
+    }
+
     public function invalid()
     {
         $rejectedMessages = $this->messages->getRejected();
