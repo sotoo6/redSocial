@@ -25,7 +25,7 @@
                     <li class="mensaje">
                         <p class="autor">{{ $m['author'] }}</p>
                         <p class="asignatura">{{ $m['subject'] }}</p>
-                        <p class="texto">{!! nl2br(e($m['text'])) !!}</p>
+                        <p class="texto">{!! nl2br(e($m['content'])) !!}</p>
                         <em style="color:grey; font-size:12px;">
                             {{ $m['createdAt'] ?? '' }}
                         </em>

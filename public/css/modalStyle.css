@@ -40,6 +40,8 @@ body.dark .modal-box{
 }
 
 .modal-box textarea{
+    max-width: 96%;
+    min-width: 96%;
     width: 96%;
     min-height: 110px;
     margin-top: 8px;

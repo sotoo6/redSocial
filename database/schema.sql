@@ -1,0 +1,38 @@
+CREATE DATABASE IF NOT EXISTS redsocial
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+USE redsocial;
+
+DROP TABLE IF EXISTS deletedMessages;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS users;
+
+CREATE TABLE users (
+  idUser BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('alumno','profesor') NOT NULL,
+  createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+CREATE TABLE messages (
+  idMessage BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  idUser BIGINT UNSIGNED NOT NULL,
+  subject VARCHAR(100) NOT NULL,
+  content TEXT NOT NULL,
+  status ENUM('pending','published','rejected') NOT NULL DEFAULT 'pending',
+  createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  isDeleted TINYINT(1) NOT NULL DEFAULT 0,
+  CONSTRAINT fk_messages_users
+    FOREIGN KEY (idUser) REFERENCES users(idUser)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE deletedMessages (
+  idMessage BIGINT UNSIGNED PRIMARY KEY,
+  deletedAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT fk_deletedMessages_messages
+    FOREIGN KEY (idMessage) REFERENCES messages(idMessage)
+    ON DELETE CASCADE
+) ENGINE=InnoDB;

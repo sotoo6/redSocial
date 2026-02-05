@@ -30,7 +30,7 @@
         <div class="mensaje">
             <h2>{{ $m['author'] }}</h2>
             <p class="asignatura">{{ $m['subject'] }}</p>
-            <p>{{ $m['text'] }}</p>
+            <p>{{ $m['content'] }}</p>
             <em style="color:grey; font-size:12px;">
                 {{ $m['createdAt'] ?? '' }}
             </em>
@@ -52,7 +52,7 @@
                         class="btn-editar btn-accion"
                         data-id="{{ $m['id'] }}"
                         data-subject="{{ $m['subject'] }}"
-                        data-text="{{ $m['text'] }}">
+                        data-text="{{ $m['content'] }}">
                         Modificar
                     </button>
                 </div>
