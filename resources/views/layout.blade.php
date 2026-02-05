@@ -8,6 +8,7 @@
 
     <link rel="stylesheet" href="{{ asset('css/headerStyle.css') }}">
     <link rel="stylesheet" href="{{ asset('css/homeStyle.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/modalStyle.css') }}">
     <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
 
     @yield('styles')

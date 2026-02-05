@@ -10,6 +10,7 @@ interface IMessageRepository
     public function update(array $message): void;
     public function getPublished(): array;
     public function getPending(): array;
+    public function getRejected(): array;
     // Acciones de moderación
     public function approve(string|int $id): void;
     public function reject(string|int $id): void;

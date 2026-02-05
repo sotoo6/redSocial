@@ -42,6 +42,9 @@ Route::post('/messages', [MessageController::class, 'create'])
 Route::post('/messages/{id}/delete', [MessageController::class, 'delete'])
     ->middleware('authsession');
 
+Route::post('/messages/update', [MessageController::class, 'update'])
+    ->middleware('authsession');
+
 // ---------------------------
 // MODERACIÓN (solo profesores)
 // ---------------------------

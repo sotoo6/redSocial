@@ -154,6 +154,13 @@ class MessageRepositoryJson implements IMessageRepository
         $this->writeJsonFile($this->deletedFile, $deleted);
     }
 
+    public function getRejected(): array
+    {
+        return array_values(
+            array_filter($this->all(), fn($m) => ($m['status'] ?? '') === 'rejected')
+        );
+    }
+
     private function readJsonFile(string $path): array
     {
         if (!file_exists($path)) {

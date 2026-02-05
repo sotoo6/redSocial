@@ -154,6 +154,38 @@ public function create(Request $request)
         return redirect('/')->with('status', 'Mensaje borrado correctamente.');
     }
 
+    public function update(Request $request)
+    {
+        $data = $request->validate([
+            'id'      => 'required|string',
+            'subject' => 'required|string',
+            'text'    => 'required|string|max:280',
+        ]);
+
+        $id      = (string) $data['id'];
+        $subject = trim($data['subject']);
+        $text    = trim($data['text']);
+
+        $msg = $this->messages->find($id);
+        if (!$msg) {
+            return redirect('/')->with('error', 'El mensaje no existe.');
+        }
+
+        $currentUser = session('user.name');
+        if (($msg['author'] ?? '') !== $currentUser) {
+            return redirect('/')->with('error', 'No tienes permisos para modificar este mensaje.');
+        }
+
+        $msg['subject'] = $subject;
+        $msg['text']    = $text;
+
+        $msg['status'] = 'pending';
+
+        $this->messages->update($msg);
+
+        return redirect('/')->with('status', 'Tu mensaje actualizado está pendiente de moderación.');
+    }
+
     public function invalid()
     {
         $rejectedMessages = $this->messages->getRejected();
