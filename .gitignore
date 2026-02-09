@@ -23,4 +23,5 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 .mp4
-documentacion/
+
+documentacion/*.mp4
