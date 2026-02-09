@@ -21,7 +21,7 @@ CREATE TABLE messages (
   idMessage BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   idUser BIGINT UNSIGNED NOT NULL,
   subject VARCHAR(100) NOT NULL,
-  content TEXT NOT NULL,
+  content VARCHAR(280) NOT NULL,
   status ENUM('pending','published','rejected','deleted') NOT NULL DEFAULT 'pending',
   createdAt DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
   isDeleted TINYINT(1) NOT NULL DEFAULT 0,
