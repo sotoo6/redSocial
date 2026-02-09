@@ -480,7 +480,7 @@ mysql -h 127.0.0.1 -P 3306 -u root -p redsocial &lt; database/seed.sql</code></p
     <ul>
       <li>Nombre: Alumno</li>
       <li>Email: alumno@gmail.com</li>
-      <li>Contraseña: alumno321</li>
+      <li>Contraseña: alumno123</li>
     </ul>
   </li>
 </ol>
