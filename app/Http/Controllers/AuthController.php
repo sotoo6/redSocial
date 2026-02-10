@@ -46,7 +46,7 @@ class AuthController extends Controller
                 ->withInput();
         }
 
-        // password llega en SHA-256, pero aplicamos password_hash
+        // password llega en SHA-256, pero aplicamos password_hash (bcrypt)
         $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
 
         // Creamos el modelo POO
@@ -57,8 +57,15 @@ class AuthController extends Controller
             $data['role']
         );
 
-        // Guardamos en JSON
-        $this->users->save($user->toArray());
+        // Guardamos (DB o JSON según el repositorio activo)
+        $payload = $user->toArray();
+
+        // Asegura clave correcta para repositorio DB: password_hash
+        // (por si User::toArray() devuelve 'password' en vez de 'password_hash')
+        $payload['password_hash'] = $passwordHash;
+        unset($payload['password']);
+
+        $this->users->save($payload);
 
         // Rotar ID de sesión
         $request->session()->regenerate();
@@ -88,8 +95,11 @@ class AuthController extends Controller
         // Buscar usuario por email
         $user = $this->users->findByEmail($data['email']);
 
+        // La columna en BD/JSON debe ser password_hash
+        $storedHash = $user['password_hash'] ?? null;
+
         // Si no existe o la contraseña no coincide
-        if (!$user || !password_verify($data['password'], $user['password'])) {
+        if (!$user || !$storedHash || !password_verify($data['password'], $storedHash)) {
             return back()
                 ->withErrors(['email' => 'Credenciales incorrectas'])
                 ->withInput();
@@ -100,6 +110,7 @@ class AuthController extends Controller
 
         // Guardamos datos mínimos en sesión
         $request->session()->put('user', [
+            'idUser' => $user['idUser'],
             'name'  => $user['name'],
             'email' => $user['email'],
             'role'  => $user['role'],

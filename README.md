@@ -7,7 +7,11 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
-<h1>Práctica 11: Migración a framework (BC5)</h1>
+<h1>Red Social Interna - Laravel</h1>
+<h2>P11 - Migración a Framework de red social + P13 Persistencia en SGBD de la red social interna</h2>
+
+<p>Esta aplicación es una Red Social Interna desarrollada con el framework Laravel, diseñada específicamente para un entorno educativo. Su objetivo principal es facilitar la comunicación entre alumnos y profesores mediante un sistema de mensajería estructurado y supervisado.</p>
+<p>La plataforma permite a los usuarios compartir ideas y consultas asociadas a asignaturas específicas, implementando un flujo de moderación estricto: los mensajes enviados por los usuarios entran en un estado de revisión y solo son visibles para la comunidad una vez que un usuario con rol de profesor los aprueba.</p>
 
 <ol>
   <li>
@@ -18,10 +22,20 @@
   </li>
 
   <li>
+      <h2>Justificación de la elección del SGBD</h2>
+      <p>Para la persistencia de datos se ha utilizado MariaDB 10.4.28 (XAMPP), elegida por su sencilla configuración en entornos locales y su compatibilidad con la mayoría de servicios de hosting.</p>
+      <p>Su integración con Laravel es inmediata mediante el driver MySQL y el facade DB, permitiendo además una gestión cómoda de la base de datos a través de herramientas estándar como phpMyAdmin o la terminal de comandos.</p>
+  </li>
+
+  <li>
     <h2>Patrones de diseño aplicados</h2>
     <h3>Patrón Repository</h3>
     <p>
-      En el proyecto se ha aplicado el patrón Repository, implementado en la carpeta app/Repositories, con el objetivo de abstraer la lógica de acceso a los datos y separarla de la lógica de negocio. En lugar de utilizar una base de datos, la persistencia de la información se realiza mediante archivos JSON, gestionados desde repositorios específicos como UserRepositoryJson y MessageRepositoryJson. Esto nos permite en un futuro, que el sistema de persistencia pueda cambiarse (por ejemplo, a una base de datos) sin necesidad de modificar la lógica principal de la aplicación.
+      En la P11 la persistencia de la información se realizaba mediante archivos JSON (repositorios
+      <code>UserRepositoryJson</code> y <code>MessageRepositoryJson</code>). En la P13 se mantiene la misma arquitectura
+      (Repository + interfaces), pero sustituyendo los repositorios JSON por repositorios contra SGBD
+      (<code>UserRepositoryDb</code> y <code>MessageRepositoryDb</code>) usando MariaDB y consultas con <code>DB::table()</code>.
+      De este modo, los controladores siguen trabajando contra interfaces y la lógica de negocio no cambia.
     </p>
     <h3>Patrón Modelo Vista Controlador (MVC)</h3>
     <p>El proyecto sigue el patrón de arquitectura MVC para garantizar una separación de responsabilidades clara, facilitando el mantenimiento y la escalabilidad del código.</p>
@@ -29,9 +43,8 @@
         <li><h4>Modelo</h4>
             <p>Ubicados en <code>app/Models/</code>, estos archivos representan la estructura de los datos.</p>
             <ul>
-                <li>Persistencia en JSON: A diferencia de un flujo tradicional, los modelos en este proyecto están diseñados para interactuar con archivos <code>.json</code>.</li>
-                <li>Responsabilidad: Se encargan de la lectura, escritura y mapeo de los datos contenidos en el sistema de archivos, abstrayendo esta lógica de los controladores.</li>
-                <li>Entidades: <code>User.php</code> y <code>Message.php</code>.<</li>
+              <li><b>P11:</b> persistencia en JSON (<code>storage/app/data/</code>).</li>
+              <li><b>P13:</b> persistencia en SGBD (MariaDB) mediante repositorios DB (<code>app/Repositories/Db</code>).</li>
             </ul>
         </li>
         <li><h4>Vista</h4>
@@ -44,10 +57,10 @@
         <li><h4>Controlador</h4>
             <p>Ubicados en <code>app/Http/Controllers/</code>, funcionan como el cerebro de la aplicación.</p>
             <ul>
-                <li>Gestión de solicitudes: Reciben las peticiones del usuario (vía <code>routes/web.php</code>).</li>
-                <li>Lógica de archivos: El controlador solicita al Modelo que lea o guarde información en los JSON y, posteriormente, carga la Vista pertinente con esos datos.</li>
-                <li>Controladores clave: <code>AuthController.php</code> para sesiones y <code>MessageController.php</code> para la gestión de la mensajería y moderación.</li>
-            </ul
+              <li><b>Gestión de solicitudes:</b> reciben las peticiones del usuario (vía <code>routes/web.php</code>).</li>
+              <li><b>Persistencia en SGBD:</b> el controlador trabaja contra los repositorios (interfaces) para consultar/guardar datos en la base de datos (tablas <code>users</code> y <code>messages</code>) y, posteriormente, carga la vista pertinente con esos datos.</li>
+              <li><b>Controladores clave:</b> <code>AuthController.php</code> para sesiones y autenticación, <code>MessageController.php</code> para publicación, edición, borrado lógico y moderación, y <code>ThemeController.php</code> para la preferencia de tema.</li>
+            </ul>
         </li>
     </ul>
   </li>
@@ -61,6 +74,11 @@
     <p>
       Este proyecto está desarrollado con el framework Laravel. Se asume que el entorno donde se desplegará cuenta previamente con PHP y el gestor de dependencias Composer instalados (por ejemplo, mediante XAMPP en Linux o una instalación nativa en Ubuntu).
     </p>
+        <ul>
+            <li>PHP + Composer</li>
+            <li>Servidor de base de datos MySQL/MariaDB en ejecución</li>
+            <li>Cliente <code>mysql</code> (terminal) o phpMyAdmin para ejecutar scripts</li>
+        </ul>
     <h3>Pasos de Instalación</h3>
     <ol>
       <li>
@@ -73,68 +91,162 @@
         <code>cd redSocial</code>
       </li>
       <li>
-        <h4>Instalación de dependencias</h4>
-        <p>
-          Dado que el repositorio no incluye las librerías del núcleo de Laravel ni paquetes de terceros, es necesario instalarlos manualmente. El siguiente comando leerá el archivo <code>composer.json</code> y descargará todas las dependencias requeridas en la carpeta <code>vendor</code>:
-        </p>
-        <code>composer install</code>
+        <h4>2) Instalación de dependencias</h4>
+<p>
+Dado que el repositorio no incluye las librerías del núcleo de Laravel ni paquetes de terceros, es necesario instalarlos manualmente. El siguiente comando leerá el archivo <code>composer.json</code> y descargará todas las dependencias requeridas en la carpeta <code>vendor</code>:
+</p>
+<pre><code>composer install</code></pre>
+
+<h4>3) Configuración del entorno (.env)</h4>
+<p>
+El proyecto incluye el archivo <code>.env</code> en el directorio raíz. Si por alguna razón no existiera, puedes generarlo copiando el archivo de ejemplo:
+</p>
+<pre><code>cp .env.example .env</code></pre>
+
+<p>
+En esta práctica (P13) la persistencia se realiza en un SGBD. Por tanto, debes configurar los parámetros de conexión a la base de datos en el <code>.env</code>:
+</p>
+<pre><code>DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=redsocial
+DB_USERNAME=redSocialUsuario
+DB_PASSWORD=</code></pre>
+
+<h4>4) Crear la base de datos y las tablas (schema.sql)</h4>
+<p>
+  La estructura de la base de datos (incluye <code>CREATE DATABASE</code> + <code>CREATE TABLE</code>) se crea con el script
+  <code>database/schema.sql</code>.
+</p>
+
+<p><b>Opción A (recomendada):</b> ejecutar el schema con un usuario con permisos (por ejemplo <code>root</code>)</p>
+<pre><code>mysql -h 127.0.0.1 -P 3306 -u root -p &lt; database/schema.sql</code></pre>
+
+<p>
+  <b>Nota:</b> Se suele usar <code>root</code> para crear la base de datos y tablas si el usuario normal no tiene permisos de
+  <code>CREATE/DROP</code>. La aplicación luego se conecta con <code>DB_USERNAME=redSocialUsuario</code>.
+</p>
+
+<p><b>Opción B:</b> ejecutar el schema con tu usuario (si tiene permisos)</p>
+<pre><code>mysql -h 127.0.0.1 -P 3306 -u redSocialUsuario -p &lt; database/schema.sql</code></pre>
+
+<h4>5) Insertar datos de prueba (seed.sql)</h4>
+<p>
+  Para insertar usuarios de prueba (profesor y alumno) y opcionalmente mensajes de ejemplo se utiliza el script
+  <code>database/seed.sql</code>:
+</p>
+
+<pre><code>mysql -h 127.0.0.1 -P 3306 -u redSocialUsuario -p redsocial &lt; database/seed.sql</code></pre>
+
+<p>
+  Si tu usuario no tiene permisos de inserción, ejecuta el seed con <code>root</code>:
+</p>
+<pre><code>mysql -h 127.0.0.1 -P 3306 -u root -p redsocial &lt; database/seed.sql</code></pre>
+
+<h4>6) (Opcional) Reiniciar completamente la base de datos</h4>
+<p>
+  Si necesitas borrar y recrear todo desde cero:
+</p>
+
+<pre><code>mysql -h 127.0.0.1 -P 3306 -u root -p -e "DROP DATABASE IF EXISTS redsocial;"
+mysql -h 127.0.0.1 -P 3306 -u root -p &lt; database/schema.sql
+mysql -h 127.0.0.1 -P 3306 -u root -p redsocial &lt; database/seed.sql</code></pre>
+
+<h4>7) Generación de la clave de aplicación</h4>
+<p>
+  Aunque dispongas del archivo de entorno, Laravel requiere asegurar que exista una clave de encriptación válida configurada
+  para gestionar la seguridad de las sesiones. Puedes generar o regenerar esta clave ejecutando:
+</p>
+
+<pre><code>/opt/lampp/bin/php artisan key:generate</code></pre>
+
+<h4>8) Limpiar configuración (recomendado tras cambios en .env)</h4>
+<p>
+  Si has modificado el <code>.env</code>, es recomendable limpiar la configuración/cache:
+</p>
+
+<pre><code>/opt/lampp/bin/php artisan config:clear
+/opt/lampp/bin/php artisan cache:clear</code></pre>
+
+<h4>9) Permisos de escritura</h4>
+<p>
+  Laravel necesita permisos de escritura en <code>storage</code> y <code>bootstrap/cache</code> para cache, logs y archivos temporales:
+</p>
+
+<pre><code>chmod -R 775 storage bootstrap/cache</code></pre>
+
+<h4>10) Ejecución del servidor</h4>
+<p>
+  Para iniciar el entorno de desarrollo, se utiliza el servidor interno proporcionado por Artisan (invocando el PHP de XAMPP).
+  Se recomienda especificar el host y el puerto para asegurar la accesibilidad externa:
+</p>
+
+<pre><code>/opt/lampp/bin/php artisan serve --host=0.0.0.0 --port=8000</code></pre>
+
+<p>
+  Una vez ejecutado el comando, la aplicación estará accesible dependiendo de tu método de conexión:
+</p>
+<ul>
+  <li>Si usas VS Code (Remote-SSH) o estás dentro de la VM: Accede a <code>http://localhost:8000</code> (el editor reenviará el puerto automáticamente).</li>
+  <li>Si accedes desde Windows/Mac sin reenvío de puertos: Deberás usar la IP de la máquina virtual: <code>http://&lt;IP_DE_TU_VM&gt;:8000</code> (puedes consultar tu IP ejecutando <code>hostname -I</code> en la terminal).</li>
+</ul>
+  </li>
+
+  <li>
+      <h2>Diseño de la base de datos</h2>
+    <h3>Entidades y relaciones</h3>
+    <p>
+      El modelo se centra en dos entidades principales:
+    </p>
+    <ul>
+      <li>
+        <strong>users</strong>: almacena usuarios, con rol (<em>alumno/profesor</em>) y preferencia de tema.
       </li>
       <li>
-        <h4>Configuración del entorno</h4>
-        <p>
-          El proyecto ya incluye el archivo de configuración principal <code>.env</code> en el directorio raíz, por lo que no es necesario crearlo manualmente.
-        </p>
-        <p>
-          Nota: Si por alguna razón el archivo no existiera, puedes generar uno copiando el archivo de ejemplo: <code>cp .env.example .env</code>.
-        </p>
-        <p>
-          Esta aplicación ha sido diseñada para utilizar persistencia de datos en archivos JSON (ubicados en <code>storage/app/data/</code>) y drivers de archivo para el manejo de sesiones. Por lo tanto, no es necesario configurar ni arrancar una base de datos relacional (como MySQL) para su funcionamiento.
-        </p>
+        <strong>messages</strong>: almacena mensajes publicados por un usuario. Cada mensaje pertenece a un usuario
+        mediante una <strong>FK</strong> (<code>messages.idUser</code> → <code>users.idUser</code>).
+      </li>
+    </ul>
+    <p>
+      Relación principal: <strong>users (1) — (N) messages</strong>.
+      Un usuario puede publicar muchos mensajes y cada mensaje pertenece a un único usuario.
+    </p>
+    <h3>Borrado lógico (especialización)</h3>
+    <p>
+      Para los mensajes eliminados se usa <strong>borrado lógico</strong> en la tabla <code>messages</code>:
+    </p>
+    <ul>
+      <li><code>isDeleted</code> indica si el mensaje está eliminado (0/1).</li>
+      <li><code>deletedAt</code> guarda la fecha/hora en la que se eliminó.</li>
+    </ul>
+    <h3>Resumen de tablas creadas (columnas principales)</h3>
+    <ul>
+      <li>
+        <b>users</b>:
+        <code>idUser</code> (PK),
+        <code>name</code>,
+        <code>email</code> (UNIQUE),
+        <code>password_hash</code>,
+        <code>role</code>,
+        <code>theme</code>,
+        <code>createdAt</code>
       </li>
       <li>
-        <h4>Verificación de archivos de datos</h4>
-        <p>
-          Para evitar errores de lectura al iniciar la aplicación, asegúrate de que existen los archivos de almacenamiento con una estructura válida. Ejecuta estos comandos para crearlos si no existen:
-        </p>
-        <code>mkdir -p storage/app/data</code>
-        <br>
-        <code>echo "[]" &gt; storage/app/data/users.json</code>
-        <br>
-        <code>echo "[]" &gt; storage/app/data/messages.json</code>
+        <b>messages</b>:
+        <code>idMessage</code> (PK),
+        <code>idUser</code> (FK → <code>users.idUser</code>),
+        <code>subject</code>,
+        <code>content</code>,
+        <code>status</code>,
+        <code>createdAt</code>,
+        <code>isDeleted</code>,
+        <code>deletedAt</code>
       </li>
-      <li>
-        <h4>Generación de la clave de aplicación</h4>
-        <p>
-          Aunque dispongas del archivo de entorno, Laravel requiere asegurar que exista una clave de encriptación válida configurada para gestionar la seguridad de las sesiones. Puedes generar o regenerar esta clave ejecutando el comando (usando el PHP de XAMPP para evitar conflictos):
-        </p>
-        <code>/opt/lampp/bin/php artisan key:generate</code>
-      </li>
-      <li>
-        <h4>Permisos de escritura</h4>
-        <p>
-          Debido a que la arquitectura del proyecto almacena la información de usuarios y mensajes en archivos físicos dentro del directorio <code>storage</code>, es indispensable que el servidor web disponga de permisos de escritura en estas carpetas. De no concederse estos permisos, acciones como el registro de usuarios fallarán.
-        </p>
-        <p>Ejecuta el siguiente comando para asignar los permisos necesarios:</p>
-        <code>chmod -R 775 storage bootstrap/cache</code>
-      </li>
-      <li>
-        <h4>Ejecución del Servidor</h4>
-        <p>
-          Para iniciar el entorno de desarrollo, se utiliza el servidor interno proporcionado por Artisan (invocando el PHP de XAMPP). Se recomienda especificar el host y el puerto para asegurar la accesibilidad externa:
-        </p>
-        <code>/opt/lampp/bin/php artisan serve --host=0.0.0.0 --port=8000</code>
-        <p>Una vez ejecutado el comando, la aplicación estará accesible dependiendo de tu método de conexión:</p>
-        <ul>
-          <li>
-            Si usas VS Code (Remote-SSH) o estás dentro de la VM: Accede a <code>http://localhost:8000</code> (el editor reenviará el puerto automáticamente).
-          </li>
-          <li>
-            Si accedes desde Windows/Mac sin reenvío de puertos: Deberás usar la IP de la máquina virtual:
-            <code>http://&lt;IP_DE_TU_VM&gt;:8000</code> (puedes consultar tu IP ejecutando <code>hostname -I</code> en la terminal).
-          </li>
-        </ul>
-      </li>
-    </ol>
+    </ul>
+    <h3>Diagrama (E/R y tablas)</h3>
+    <p>
+      El diagrama actualizado se encuentra en el proyecto en la carpeta <code>documentacion/P13ERredSocial.jpg</code>.
+    </p>
   </li>
 
   <li>
@@ -166,7 +278,7 @@
             <p>Acciones realizadas:</p>
             <ul>
               <li>Comprueba que se han introducido email y contraseña.</li>
-              <li>Busca el usuario en users.json.</li>
+              <li>Busca el usuario en la tabla <code>users</code> de la base de datos.</li>
               <li>Verifica la contraseña hasheada usando password_verify() sobre el hash almacenado.</li>
               <li>Ejecuta session_regenerate_id(true) para evitar fijación de sesión.</li>
               <li>Guarda en $_SESSION['user'] los datos mínimos del usuario (id, nombre, email, rol, tema).</li>
@@ -190,7 +302,7 @@
               <li>Comprueba que los campos requeridos no estén vacíos.</li>
               <li>Recibe la contraseña hasheada en SHA-256 desde el frontend.</li>
               <li>Vuelve a hashear ese valor con password_hash() para almacenarlo de forma segura.</li>
-              <li>Guarda el nuevo usuario en users.json con un ID aleatorio y tema por defecto.</li>
+              <li>Inserta el nuevo usuario en la tabla <code>users</code> (campo <code>password_hash</code>) con un ID aleatorio y tema por defecto.</li>
               <li>Regenera la sesión para evitar problemas de seguridad.</li>
               <li>Redirige a /login para que el usuario pueda autenticarse.</li>
             </ul>
@@ -217,7 +329,7 @@
               <li>Valida que el texto tenga entre 1 y 280 caracteres.</li>
               <li>Revisa que no haya patrones peligrosos (<code>script</code>, <code>onerror=</code>, <code>drop table</code>...).</li>
               <li>Comprueba que no haya palabrotas o contenido inapropiado.</li>
-              <li>Si es válido, guarda el mensaje con estado pending en messages.json.</li>
+              <li>Si es válido, inserta el mensaje en la tabla <code>messages</code> con estado <code>pending</code> o <code>rejected</code>.</li>
               <li>El mensaje quedará visible solo después de ser aprobado por un profesor.</li>
             </ul>
           </li>
@@ -233,7 +345,7 @@
           </li>
           <li>
             <h4>POST /moderation/{id}/approve</h4>
-            <p>Actualiza el estado del mensaje seleccionado a published. Tras actualizar el JSON, redirige de vuelta a la vista de moderación.</p>
+            <p>Actualiza el estado del mensaje seleccionado a published. Actualiza el campo <code>status</code> del registro en la tabla <code>messages</code> y redirige de vuelta a la vista de moderación.</p>
           </li>
           <li>
             <h4>POST /moderation/{id}/reject</h4>
@@ -255,7 +367,7 @@
             <ul>
               <li>Actualiza el tema guardado en la sesión, aplicándolo de inmediato.</li>
               <li>Guarda la preferencia en la cookie del usuario (30 días).</li>
-              <li>Actualiza el tema en users.json para mantener persistencia tras cerrar sesión.</li>
+              <li>Actualiza el campo <code>theme</code> del usuario en la tabla <code>users</code> para mantener persistencia tras cerrar sesión.</li>
               <li>Redirige a la página desde la que el usuario realizó la acción, usando <code>?return=/ruta</code>.</li>
             </ul>
           </li>
@@ -332,9 +444,9 @@
         <h3>Moderación</h3>
         <p>La moderación es exclusiva del rol profesor:</p>
         <ul>
-          <li>Solo usuarios con role = 'profe' pueden acceder a la cola de moderación.</li>
-          <li>Los mensajes se pueden aprobar (estado published) o rechazar (estado rejected).</li>
-          <li>Los cambios se guardan de manera persistente en messages.json.</li>
+          <li>Solo usuarios con <code>role = 'profesor'</code> pueden acceder a la cola de moderación.</li>
+          <li>Los mensajes se pueden aprobar (estado <code>published</code>) o rechazar (estado <code>rejected</code>).</li>
+          <li>Los cambios se guardan de manera persistente en la base de datos, actualizando el campo <code>status</code> en la tabla <code>messages</code>.</li>
         </ul>
         <p>Este sistema asegura un control básico del flujo de contenido.</p>
       </li>
@@ -349,8 +461,8 @@
               <li>SameSite=Lax: reduce ataques CSRF evitando envío automático de cookies en peticiones externas.</li>
             </ul>
           </li>
-          <li>Rotación de ID de sesión: Tras un login correcto, se genera un nuevo ID para evitar secuestro de sesión.</li>
-          <li>Cookie de tema (claro/oscuro): Se guarda durante 30 días, se actualiza cada vez que el usuario cambia el tema y se sincroniza con la sesión y con users.json.</li>
+          <li>Rotación de ID de sesión:</b> tras un login correcto, se genera un nuevo ID para evitar secuestro de sesión.</li>
+          <li>Cookie de tema (claro/oscuro):</b> se guarda durante 30 días, se actualiza cada vez que el usuario cambia el tema y se sincroniza con la sesión y con la base de datos (campo <code>theme</code> en la tabla <code>users</code>).</li>
         </ul>
         <p>Esto mantiene las preferencias persistentes y protegidas.</p>
       </li>
@@ -368,7 +480,7 @@
     <ul>
       <li>Nombre: Alumno</li>
       <li>Email: alumno@gmail.com</li>
-      <li>Contraseña: alumno321</li>
+      <li>Contraseña: alumno123</li>
     </ul>
   </li>
 </ol>

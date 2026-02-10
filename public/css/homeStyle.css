@@ -125,3 +125,15 @@ p {
   overflow-wrap: anywhere;
   word-break: break-word;
 }
+
+.btn-accion{
+    margin-top: 10px;
+    background: var(--body-bg);
+    border: none;
+    padding: 8px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+.btn-accion:hover{
+    opacity: 0.85;
+}

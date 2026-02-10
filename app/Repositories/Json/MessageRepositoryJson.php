@@ -12,16 +12,26 @@ class MessageRepositoryJson implements IMessageRepository
 {
     // Ruta absoluta al archivo JSON donde se guardan los mensajes
     private string $file;
+    private string $deletedFile;
 
     public function __construct()
     {
-        // storage_path() construye una ruta dentro de /storage en Laravel
         $this->file = storage_path('app/data/messages.json');
+        $this->deletedFile = storage_path('app/data/deleted_messages.json');
 
-        // Si no existe el archivo, lo creamos vacío
+        // Asegurar carpeta
+        $dir = dirname($this->file);
+        if (!file_exists($dir)) {
+            mkdir($dir, 0775, true);
+        }
+
+        // Crear archivos si no existen
         if (!file_exists($this->file)) {
-            @mkdir(dirname($this->file), 0775, true);
-            file_put_contents($this->file, json_encode([], JSON_PRETTY_PRINT));
+            file_put_contents($this->file, json_encode([], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
+        }
+
+        if (!file_exists($this->deletedFile)) {
+            file_put_contents($this->deletedFile, json_encode([], JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         }
     }
 
@@ -31,8 +41,7 @@ class MessageRepositoryJson implements IMessageRepository
      */
     public function all(): array
     {
-        $data = json_decode(file_get_contents($this->file) ?: '[]', true);
-        return is_array($data) ? $data : [];
+        return $this->readJsonFile($this->file);
     }
 
     /**
@@ -54,29 +63,27 @@ class MessageRepositoryJson implements IMessageRepository
      * Si no trae 'id', se lo asigna autoincremental (max(id)+1).
      * Luego lo añade al final y reescribe el JSON completo.
      */
-    public function save(array $message): void
+   public function save(array $message): void
     {
         $messages = $this->all();
 
-        // Si el mensaje ya tiene un ID, no lo tocamos
         if (!isset($message['id'])) {
-            // id autoincremental solo si no hay id previo
             $nextId = 1;
+
             if (!empty($messages)) {
-                // extrae ids existentes, se queda con los numéricos y calcula el siguiente
-                $ids = array_filter(array_map(fn($m) => $m['id'] ?? null, $messages));
+                $ids = array_map(fn($m) => $m['id'] ?? null, $messages);
                 $numericIds = array_filter($ids, 'is_numeric');
+
                 if (!empty($numericIds)) {
                     $nextId = max($numericIds) + 1;
                 }
             }
+
             $message['id'] = $nextId;
         }
 
         $messages[] = $message;
-
-        // Persiste todo el array en el archivo (sobrescribe el contenido)
-        file_put_contents($this->file, json_encode($messages, JSON_PRETTY_PRINT));
+        $this->writeJsonFile($this->file, $messages);
     }
 
     /**
@@ -94,7 +101,7 @@ class MessageRepositoryJson implements IMessageRepository
             }
         }
 
-        file_put_contents($this->file, json_encode($messages, JSON_PRETTY_PRINT));
+        $this->writeJsonFile($this->file, $messages);
     }
 
     /**
@@ -141,11 +148,71 @@ class MessageRepositoryJson implements IMessageRepository
         $this->update($msg);
     }
 
-     /** Devuelve mensajes con status = 'rejected'. */
+    public function delete(string|int $id): void
+    {
+        $id = (string)$id;
+
+        $messages = $this->all();
+
+        $deletedMsg = null;
+        $remaining = [];
+
+        foreach ($messages as $m) {
+            if ((string)($m['id'] ?? '') === $id) {
+                $deletedMsg = $m;
+            } else {
+                $remaining[] = $m;
+            }
+        }
+
+        if ($deletedMsg === null) {
+            return;
+        }
+
+        // Guardar activos sin el borrado
+        $this->writeJsonFile($this->file, array_values($remaining));
+
+        // Añadir a borrados
+        $deleted = $this->readJsonFile($this->deletedFile);
+
+        // marcar estado y fecha de borrado
+        $deletedMsg['status'] = 'delete';
+        $deletedMsg['deleted_at'] = date('c');
+
+        $deleted[] = $deletedMsg;
+
+        $this->writeJsonFile($this->deletedFile, $deleted);
+    }
+
     public function getRejected(): array
     {
         return array_values(
             array_filter($this->all(), fn($m) => ($m['status'] ?? '') === 'rejected')
         );
+    }
+
+    private function readJsonFile(string $path): array
+    {
+        if (!file_exists($path)) {
+            return [];
+        }
+
+        $raw = file_get_contents($path);
+        if ($raw === false || trim($raw) === '') {
+            return [];
+        }
+
+        $data = json_decode($raw, true);
+        return is_array($data) ? $data : [];
+    }
+
+    private function writeJsonFile(string $path, array $data): void
+    {
+        $json = json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        if ($json === false) {
+            $json = '[]';
+        }
+
+        file_put_contents($path, $json, LOCK_EX);
     }
 }

@@ -39,6 +39,12 @@ Route::get('/messages/new', [MessageController::class, 'showNewForm'])
 Route::post('/messages', [MessageController::class, 'create'])
     ->middleware('authsession');
 
+Route::post('/messages/{id}/delete', [MessageController::class, 'delete'])
+    ->middleware('authsession');
+
+Route::post('/messages/update', [MessageController::class, 'update'])
+    ->middleware('authsession');
+
 // ---------------------------
 // MODERACIÓN (solo profesores)
 // ---------------------------

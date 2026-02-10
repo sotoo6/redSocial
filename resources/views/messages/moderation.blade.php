@@ -28,8 +28,8 @@
                     ({{ $m['subject'] }}):
                     
                     {{-- Contenido del mensaje --}}
-                    {{ $m['text'] }}
-
+                    {{ $m['content'] }}
+                    <br>
                     <em style="color:grey; font-size:12px;">
                             {{ $m['createdAt'] ?? '' }}
                         </em>

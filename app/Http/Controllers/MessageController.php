@@ -47,70 +47,59 @@ class MessageController extends Controller
     }
 
     // Guardar nuevo mensaje
-public function create(Request $request)
-{
-    // Validación básica de campos
-    $data = $request->validate([
-        'subject' => 'required|string',
-        'text' => 'required|string|max:280',
-    ]);
+    public function create(Request $request)
+    {
+        $data = $request->validate([
+            'subject' => 'required|string',
+            'text'    => 'required|string|max:280',
+        ]);
 
-    // Normalizamos los valores
-    $subject = trim($data['subject']);
-    $text = trim($data['text']);
-    $author = session('user.name');
+        $subject = trim($data['subject']);
+        $text    = trim($data['text']);
 
-    // Lista de palabrotas
-    $badWords = [
-        'puta','puto','gilipollas','mierda','hostia','joder',
-        'coño','cabrón','cabron','idiota','imbécil','imbecil',
-        'subnormal', 'hijo de puta', 'maricon','maricón',
-        'perra', 'cara polla', 'comemierda', 'polla'
-    ];
+        $idUser  = session('user.idUser');
 
-    // Comprobaciones de seguridad
-    $isDangerous = preg_match('/<script|onerror=|onload=|onclick=|onmouseover=|javascript:|eval\(|iframe|embed|object/i', $text);
-
-    $containsBadWord = false;
-    foreach ($badWords as $word) {
-        if (stripos($text, $word) !== false) {
-            $containsBadWord = true;
-            break;
+        if (!$idUser) {
+            return redirect('/login')->with('status', 'Debes iniciar sesión para publicar.');
         }
+
+        $badWords = [
+            'puta','puto','gilipollas','mierda','hostia','joder',
+            'coño','cabrón','cabron','idiota','imbécil','imbecil',
+            'subnormal', 'hijo de puta', 'maricon','maricón',
+            'perra', 'cara polla', 'comemierda', 'polla'
+        ];
+
+        $isDangerous = preg_match('/<script|onerror=|onload=|onclick=|onmouseover=|javascript:|eval\(|iframe|embed|object/i', $text);
+
+        $containsBadWord = false;
+        foreach ($badWords as $word) {
+            if (stripos($text, $word) !== false) {
+                $containsBadWord = true;
+                break;
+            }
+        }
+
+        $status = (!$isDangerous && !$containsBadWord) ? 'pending' : 'rejected';
+
+        $payload = [
+            'idUser'    => $idUser,
+            'subject'   => $subject,
+            'content'   => $text,
+            'status'    => $status,
+            'createdAt' => date('Y-m-d H:i:s'),
+        ];
+
+        $this->messages->save($payload);
+
+        return redirect('/')->with(
+            'status',
+            $status === 'pending'
+                ? 'Mensaje enviado (pendiente de moderación).'
+                : 'Mensaje rechazado automáticamente.'
+        );
     }
 
-    // Determinar estado
-    $status = (!$isDangerous && !$containsBadWord)
-        ? 'pending'   // caso normal → pendiente de moderación
-        : 'rejected'; // caso prohibido → rechazado directamente
-
-    // Crear el mensaje
-    $message = new Message(
-        id: uniqid(),
-        author: $author,
-        subject: $subject,
-        text: $text,
-        status: $status,
-        createdAt: date('Y-m-d H:i:s')
-    );
-
-    $this->messages->save($message->toArray());
-
-    // Si el mensaje es válido → mostrar en la misma vista
-    if ($status === 'pending') {
-        return view('messages.new_message', [
-            'messagePending' => $message->toArray(),
-            'subjects' => ['Desarrollo Web Entorno Servidor', 'Digitalización', 'Despliegue', 'Inglés', 'Empresa']
-        ]);
-    } else {
-        // Si el mensaje fue rechazado, también mostrarlo
-        return view('messages.new_message', [
-            'messagePending' => $message->toArray(),
-            'subjects' => ['Desarrollo Web Entorno Servidor', 'Digitalización', 'Despliegue', 'Inglés', 'Empresa'],
-            'rejected' => true
-        ]);
-    }
-}
 
     // Cola de moderación
     public function moderation()
@@ -131,6 +120,68 @@ public function create(Request $request)
     {
         $this->messages->reject($id);
         return redirect('/moderation');
+    }
+
+    // Borrar mensaje
+    public function delete(Request $request, $id)
+    {
+        $msg = $this->messages->find((string)$id);
+
+        if (!$msg) {
+            return redirect('/')->with('status', 'Mensaje no encontrado.');
+        }
+
+        $currentUserName = session('user.name');
+
+        // Solo permite borrar si el mensaje es suyo
+        if (($msg['author'] ?? '') !== $currentUserName) {
+            return redirect('/')->with('status', 'No tienes permisos para borrar este mensaje.');
+        }
+
+        $this->messages->delete($id);
+
+        return redirect('/')->with('status', 'Mensaje borrado correctamente.');
+    }
+
+    public function update(Request $request)
+    {
+        $data = $request->validate([
+            'id'      => 'required|string',
+            'subject' => 'required|string',
+            'text'    => 'required|string|max:280',
+        ]);
+
+        $id      = (string) $data['id'];
+        $subject = trim($data['subject']);
+        $text    = trim($data['text']);
+
+        $msg = $this->messages->find($id);
+        if (!$msg) {
+            return redirect('/')->with('error', 'El mensaje no existe.');
+        }
+
+        // Comprobación de permisos: en DB lo correcto es por idUser
+        $currentIdUser = session('user.idUser');
+        if (!$currentIdUser) {
+            return redirect('/login')->with('status', 'Debes iniciar sesión.');
+        }
+
+        if ((string)($msg['idUser'] ?? '') !== (string)$currentIdUser) {
+            return redirect('/')->with('error', 'No tienes permisos para modificar este mensaje.');
+        }
+
+        // Actualizamos campos (en DB el texto es "content")
+        $payload = [
+            'id'      => $id,
+            'idUser'  => $msg['idUser'] ?? $currentIdUser,
+            'subject' => $subject,
+            'content' => $text,      // <-- clave correcta para BD
+            'status'  => 'pending',  // al editar vuelve a moderación
+        ];
+
+        $this->messages->update($payload);
+
+        return redirect('/')->with('status', 'Tu mensaje actualizado está pendiente de moderación.');
     }
 
     public function invalid()
