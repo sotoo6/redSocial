@@ -119,7 +119,7 @@ DB_PASSWORD=</code></pre>
   <code>database/schema.sql</code>.
 </p>
 
-<p><b>Opción A (recomendada):</b> ejecutar el schema con un usuario con permisos (por ejemplo <code>root</code>)</p>
+<p><b>Opción A:</b> ejecutar el schema con un usuario con permisos (por ejemplo <code>root</code>)</p>
 <pre><code>mysql -h 127.0.0.1 -P 3306 -u root -p &lt; database/schema.sql</code></pre>
 
 <p>
