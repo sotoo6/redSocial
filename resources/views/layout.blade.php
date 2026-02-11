@@ -13,12 +13,37 @@
 
     @yield('styles')
 </head>
-<body class="{{ session('user.theme', cookie('theme', 'light')) }}">
+
+@php
+    $theme = session('user.theme') ?? cookie('theme', 'light');
+@endphp
+
+<body class="{{ $theme }}">
     @if(session()->has('user'))
         @include('partials.header')
     @endif
 
     <div class="container">
+
+        {{-- Mensajes globales (errores BD / avisos generales) --}}
+        @if(session('dbError'))
+            <div class="alert alert-danger" style="margin: 12px 0;">
+                {{ session('dbError') }}
+            </div>
+        @endif
+
+        @if(session('status'))
+            <div class="alert alert-success msg-estado" style="margin: 12px 0;">
+                {{ session('status') }}
+            </div>
+        @endif
+
+        @if(session('error'))
+            <div class="alert alert-danger" style="margin: 12px 0;">
+                {{ session('error') }}
+            </div>
+        @endif
+
         @yield('content')
     </div>
 

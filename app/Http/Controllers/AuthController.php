@@ -5,13 +5,16 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Contracts\IUserRepository;
 use App\Models\User;
+use App\Exceptions\DatabaseUnavailableException;
 
 class AuthController extends Controller
 {
     private IUserRepository $users;
 
     /**
-     * Inyectamos el repositorio de usuarios.
+     * Inyecta el repositorio de usuarios (DB/JSON según implementación activa).
+     *
+     * @param IUserRepository $users Repositorio que gestiona las operaciones CRUD de usuarios.
      */
     public function __construct(IUserRepository $users)
     {
@@ -19,7 +22,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Muestra el formulario de registro (GET).
+     * Muestra el formulario de registro (GET /register).
+     *
+     * @return \Illuminate\View\View
      */
     public function showRegister()
     {
@@ -27,7 +32,16 @@ class AuthController extends Controller
     }
 
     /**
-     * Procesa el registro (POST).
+     * Procesa el registro de un usuario (POST /register).
+     *
+     * - Valida datos.
+     * - Comprueba email duplicado.
+     * - Aplica password_hash() (bcrypt) al hash SHA-256 recibido desde el frontend.
+     * - Inserta el usuario mediante el repositorio.
+     * - Regenera sesión y redirige a login.
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function register(Request $request)
     {
@@ -38,34 +52,46 @@ class AuthController extends Controller
             'role'     => ['required', 'in:alumno,profesor'],
         ]);
 
-        // Comprobamos si el email está registrado
-        $existing = $this->users->findByEmail($data['email']);
-        if ($existing) {
+        try {
+            // Comprobamos si el email está registrado
+            $existing = $this->users->findByEmail($data['email']);
+            if ($existing) {
+                return back()
+                    ->withErrors(['email' => 'El email ya está registrado'])
+                    ->withInput();
+            }
+
+            // password llega en SHA-256, pero aplicamos password_hash (bcrypt)
+            $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
+
+            // Creamos el modelo POO
+            $user = new User(
+                $data['name'],
+                $data['email'],
+                $passwordHash,
+                $data['role']
+            );
+
+            // Guardamos (DB o JSON según el repositorio activo)
+            $payload = $user->toArray();
+
+            // Asegura clave correcta para repositorio DB: password_hash
+            $payload['password_hash'] = $passwordHash;
+            unset($payload['password']);
+
+            $this->users->save($payload);
+
+        } catch (DatabaseUnavailableException $e) {
+            // Mensaje friendly para el usuario + detalle opcional para depurar
             return back()
-                ->withErrors(['email' => 'El email ya está registrado'])
-                ->withInput();
+                ->withInput()
+                ->withErrors(['db' => 'No se puede conectar con la base de datos ahora mismo. Inténtalo más tarde.']);
+        } catch (\Throwable $e) {
+            // Cualquier otro error inesperado
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Ha ocurrido un error inesperado. Inténtalo más tarde.']);
         }
-
-        // password llega en SHA-256, pero aplicamos password_hash (bcrypt)
-        $passwordHash = password_hash($data['password'], PASSWORD_DEFAULT);
-
-        // Creamos el modelo POO
-        $user = new User(
-            $data['name'],
-            $data['email'],
-            $passwordHash,
-            $data['role']
-        );
-
-        // Guardamos (DB o JSON según el repositorio activo)
-        $payload = $user->toArray();
-
-        // Asegura clave correcta para repositorio DB: password_hash
-        // (por si User::toArray() devuelve 'password' en vez de 'password_hash')
-        $payload['password_hash'] = $passwordHash;
-        unset($payload['password']);
-
-        $this->users->save($payload);
 
         // Rotar ID de sesión
         $request->session()->regenerate();
@@ -74,7 +100,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Muestra el formulario de login (GET).
+     * Muestra el formulario de login (GET /login).
+     *
+     * @return \Illuminate\View\View
      */
     public function showLogin()
     {
@@ -82,27 +110,46 @@ class AuthController extends Controller
     }
 
     /**
-     * Procesa login
+     * Procesa el inicio de sesión (POST /login).
+     *
+     * - Valida datos.
+     * - Busca usuario por email.
+     * - Verifica password_verify() con el hash almacenado (bcrypt) contra SHA-256 recibido.
+     * - Regenera sesión.
+     * - Guarda datos mínimos en sesión y cookie del tema.
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function login(Request $request)
     {
-        // Validación
         $data = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'string'], // llega SHA-256 desde JS
         ]);
 
-        // Buscar usuario por email
-        $user = $this->users->findByEmail($data['email']);
+        try {
+            // Buscar usuario por email
+            $user = $this->users->findByEmail($data['email']);
 
-        // La columna en BD/JSON debe ser password_hash
-        $storedHash = $user['password_hash'] ?? null;
+            // La columna en BD/JSON debe ser password_hash
+            $storedHash = $user['password_hash'] ?? null;
 
-        // Si no existe o la contraseña no coincide
-        if (!$user || !$storedHash || !password_verify($data['password'], $storedHash)) {
+            // Si no existe o la contraseña no coincide
+            if (!$user || !$storedHash || !password_verify($data['password'], $storedHash)) {
+                return back()
+                    ->withErrors(['email' => 'Credenciales incorrectas'])
+                    ->withInput();
+            }
+
+        } catch (DatabaseUnavailableException $e) {
             return back()
-                ->withErrors(['email' => 'Credenciales incorrectas'])
-                ->withInput();
+                ->withInput()
+                ->withErrors(['db' => 'No se puede conectar con la base de datos ahora mismo. Inténtalo más tarde.']);
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->withErrors(['error' => 'Ha ocurrido un error inesperado. Inténtalo más tarde.']);
         }
 
         // Rotar ID
@@ -111,9 +158,9 @@ class AuthController extends Controller
         // Guardamos datos mínimos en sesión
         $request->session()->put('user', [
             'idUser' => $user['idUser'],
-            'name'  => $user['name'],
+            'name' => $user['name'],
             'email' => $user['email'],
-            'role'  => $user['role'],
+            'role' => $user['role'],
             'theme' => $user['theme'] ?? 'light',
         ]);
 
@@ -132,14 +179,15 @@ class AuthController extends Controller
     }
 
     /**
-     * Cierra sesión
+     * Cierra la sesión (POST /logout).
+     *
+     * @param  Request $request
+     * @return \Illuminate\Http\RedirectResponse
      */
     public function logout(Request $request)
     {
-        // Elimina datos de sesión
         $request->session()->forget('user');
 
-        // Invalida sesión y token
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 

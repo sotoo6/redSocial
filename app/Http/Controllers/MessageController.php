@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Contracts\IMessageRepository;
-use App\Models\Message;
+use App\Exceptions\DatabaseUnavailableException;
 
 class MessageController extends Controller
 {
@@ -31,7 +31,15 @@ class MessageController extends Controller
             'Afondamiento',
         ];
 
-        $published = $this->messages->getPublished();
+        try {
+            $published = $this->messages->getPublished();
+        } catch (DatabaseUnavailableException $e) {
+            return view('messages.index', [
+                'messages' => [],
+                'subjects' => $subjects,
+                'dbError'  => $e->getMessage(),
+            ]);
+        }
 
         $messages = ($subject === 'todas')
             ? $published
@@ -57,7 +65,7 @@ class MessageController extends Controller
         $subject = trim($data['subject']);
         $text    = trim($data['text']);
 
-        $idUser  = session('user.idUser');
+        $idUser = session('user.idUser');
 
         if (!$idUser) {
             return redirect('/login')->with('status', 'Debes iniciar sesión para publicar.');
@@ -90,7 +98,11 @@ class MessageController extends Controller
             'createdAt' => date('Y-m-d H:i:s'),
         ];
 
-        $this->messages->save($payload);
+        try {
+            $this->messages->save($payload);
+        } catch (DatabaseUnavailableException $e) {
+            return back()->with('status', $e->getMessage());
+        }
 
         return redirect('/')->with(
             'status',
@@ -100,45 +112,73 @@ class MessageController extends Controller
         );
     }
 
-
     // Cola de moderación
     public function moderation()
     {
-        $pendingMessages = $this->messages->getPending();
+        try {
+            $pendingMessages = $this->messages->getPending();
+        } catch (DatabaseUnavailableException $e) {
+            return view('messages.moderation', [
+                'pendingMessages' => [],
+                'dbError'         => $e->getMessage(),
+            ]);
+        }
+
         return view('messages.moderation', compact('pendingMessages'));
     }
 
     // Aprobar mensaje
     public function approve($id)
     {
-        $this->messages->approve($id);
+        try {
+            $this->messages->approve($id);
+        } catch (DatabaseUnavailableException $e) {
+            return redirect('/moderation')->with('status', $e->getMessage());
+        }
+
         return redirect('/moderation');
     }
 
     // Rechazar mensaje
     public function reject($id)
     {
-        $this->messages->reject($id);
+        try {
+            $this->messages->reject($id);
+        } catch (DatabaseUnavailableException $e) {
+            return redirect('/moderation')->with('status', $e->getMessage());
+        }
+
         return redirect('/moderation');
     }
 
     // Borrar mensaje
     public function delete(Request $request, $id)
     {
-        $msg = $this->messages->find((string)$id);
+        try {
+            $msg = $this->messages->find((string)$id);
+        } catch (DatabaseUnavailableException $e) {
+            return redirect('/')->with('status', $e->getMessage());
+        }
 
         if (!$msg) {
             return redirect('/')->with('status', 'Mensaje no encontrado.');
         }
 
-        $currentUserName = session('user.name');
+        $currentIdUser = session('user.idUser');
+        if (!$currentIdUser) {
+            return redirect('/login')->with('status', 'Debes iniciar sesión.');
+        }
 
-        // Solo permite borrar si el mensaje es suyo
-        if (($msg['author'] ?? '') !== $currentUserName) {
+        // Permisos: en BD, lo correcto es comprobar por idUser
+        if ((string)($msg['idUser'] ?? '') !== (string)$currentIdUser) {
             return redirect('/')->with('status', 'No tienes permisos para borrar este mensaje.');
         }
 
-        $this->messages->delete($id);
+        try {
+            $this->messages->delete($id);
+        } catch (DatabaseUnavailableException $e) {
+            return redirect('/')->with('status', $e->getMessage());
+        }
 
         return redirect('/')->with('status', 'Mensaje borrado correctamente.');
     }
@@ -155,12 +195,16 @@ class MessageController extends Controller
         $subject = trim($data['subject']);
         $text    = trim($data['text']);
 
-        $msg = $this->messages->find($id);
+        try {
+            $msg = $this->messages->find($id);
+        } catch (DatabaseUnavailableException $e) {
+            return redirect('/')->with('status', $e->getMessage());
+        }
+
         if (!$msg) {
             return redirect('/')->with('error', 'El mensaje no existe.');
         }
 
-        // Comprobación de permisos: en DB lo correcto es por idUser
         $currentIdUser = session('user.idUser');
         if (!$currentIdUser) {
             return redirect('/login')->with('status', 'Debes iniciar sesión.');
@@ -170,23 +214,34 @@ class MessageController extends Controller
             return redirect('/')->with('error', 'No tienes permisos para modificar este mensaje.');
         }
 
-        // Actualizamos campos (en DB el texto es "content")
         $payload = [
             'id'      => $id,
             'idUser'  => $msg['idUser'] ?? $currentIdUser,
             'subject' => $subject,
-            'content' => $text,      // <-- clave correcta para BD
-            'status'  => 'pending',  // al editar vuelve a moderación
+            'content' => $text,
+            'status'  => 'pending',
         ];
 
-        $this->messages->update($payload);
+        try {
+            $this->messages->update($payload);
+        } catch (DatabaseUnavailableException $e) {
+            return redirect('/')->with('status', $e->getMessage());
+        }
 
         return redirect('/')->with('status', 'Tu mensaje actualizado está pendiente de moderación.');
     }
 
     public function invalid()
     {
-        $rejectedMessages = $this->messages->getRejected();
+        try {
+            $rejectedMessages = $this->messages->getRejected();
+        } catch (DatabaseUnavailableException $e) {
+            return view('messages.invalid_messages', [
+                'rejectedMessages' => [],
+                'dbError'          => $e->getMessage(),
+            ]);
+        }
+
         return view('messages.invalid_messages', compact('rejectedMessages'));
     }
 }

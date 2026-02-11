@@ -20,11 +20,6 @@
 
     <button type="submit" id="button-filter">Aplicar filtro</button>
 </form>
-    @if (session('status'))
-        <p class="msg-estado">
-            {{ session('status') }}
-        </p>
-    @endif
 <div class="mensajes-publicados">
     @forelse ($messages as $m)
         <div class="mensaje">

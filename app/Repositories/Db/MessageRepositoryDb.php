@@ -4,12 +4,20 @@ namespace App\Repositories\Db;
 
 use App\Contracts\IMessageRepository;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Database\QueryException;
+use App\Exceptions\DatabaseUnavailableException;
 
 /**
- * Repositorio de mensajes usando SGBD (MySQL/MariaDB) con especialización de borrado:
- * - messages.isDeleted = 1
- * - messages.deletedAt guarda cuándo se eliminó
+ * Repositorio de mensajes usando SGBD (MySQL/MariaDB).
+ *
+ * Protección contra SQL Injection:
+ * - Se usa Query Builder (DB::table()) con condiciones parametrizadas.
+ * - No se concatenan strings SQL con inputs del usuario.
+ *
+ * Manejo de errores de conexión/consulta:
+ * - Captura QueryException, registra el detalle en logs y lanza DatabaseUnavailableException
+ *   con mensaje genérico (no expone SQL/host/credenciales).
  */
 class MessageRepositoryDb implements IMessageRepository
 {
@@ -36,8 +44,8 @@ class MessageRepositoryDb implements IMessageRepository
                 ->map(fn($m) => (array)$m)
                 ->toArray();
         } catch (QueryException $e) {
-            // Si falla la BD, devolvemos array vacío para no romper la app
-            return [];
+            Log::error('DB error en MessageRepositoryDb::all', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido acceder a la base de datos. Inténtalo más tarde.');
         }
     }
 
@@ -50,7 +58,7 @@ class MessageRepositoryDb implements IMessageRepository
         try {
             $row = DB::table('messages')
                 ->join('users', 'messages.idUser', '=', 'users.idUser')
-                ->where('messages.idMessage', (int)$id)
+                ->where('messages.idMessage', (int)$id) // cast + parámetro (evita injection)
                 ->first([
                     'messages.idMessage as id',
                     'messages.idUser as idUser',
@@ -65,8 +73,8 @@ class MessageRepositoryDb implements IMessageRepository
 
             return $row ? (array)$row : null;
         } catch (QueryException $e) {
-            // Si falla la consulta, devolvemos null
-            return null;
+            Log::error('DB error en MessageRepositoryDb::find', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido acceder a la base de datos. Inténtalo más tarde.');
         }
     }
 
@@ -87,7 +95,8 @@ class MessageRepositoryDb implements IMessageRepository
                 'deletedAt' => null,
             ]);
         } catch (QueryException $e) {
-            // Si falla la inserción, no hacemos nada (evita pantalla de error)
+            Log::error('DB error en MessageRepositoryDb::save', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido guardar cambios en la base de datos. Inténtalo más tarde.');
         }
     }
 
@@ -98,14 +107,11 @@ class MessageRepositoryDb implements IMessageRepository
      */
     public function update(array $message): void
     {
-        // Sacamos el id del mensaje (puede venir como 'id' o 'idMessage')
         $id = $message['idMessage'] ?? $message['id'] ?? null;
         if ($id === null) return;
 
-        // Si viene 'text' (de P11), lo tratamos como 'content'
         $content = $message['content'] ?? $message['text'] ?? null;
 
-        // Construimos el update solo con los campos presentes
         $update = [];
         if (isset($message['subject'])) $update['subject'] = $message['subject'];
         if ($content !== null) $update['content'] = $content;
@@ -118,7 +124,8 @@ class MessageRepositoryDb implements IMessageRepository
                 ->where('idMessage', (int)$id)
                 ->update($update);
         } catch (QueryException $e) {
-            // Si falla el update, no hacemos nada (evita pantalla de error)
+            Log::error('DB error en MessageRepositoryDb::update', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido guardar cambios en la base de datos. Inténtalo más tarde.');
         }
     }
 
@@ -146,7 +153,8 @@ class MessageRepositoryDb implements IMessageRepository
                 ->map(fn($m) => (array)$m)
                 ->toArray();
         } catch (QueryException $e) {
-            return [];
+            Log::error('DB error en MessageRepositoryDb::getPublished', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido acceder a la base de datos. Inténtalo más tarde.');
         }
     }
 
@@ -174,13 +182,13 @@ class MessageRepositoryDb implements IMessageRepository
                 ->map(fn($m) => (array)$m)
                 ->toArray();
         } catch (QueryException $e) {
-            return [];
+            Log::error('DB error en MessageRepositoryDb::getPending', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido acceder a la base de datos. Inténtalo más tarde.');
         }
     }
 
     /**
      * Devuelve mensajes rechazados (status='rejected') y NO borrados.
-     * Se usa en listados de rechazados (si tu interfaz lo muestra).
      */
     public function getRejected(): array
     {
@@ -202,13 +210,13 @@ class MessageRepositoryDb implements IMessageRepository
                 ->map(fn($m) => (array)$m)
                 ->toArray();
         } catch (QueryException $e) {
-            return [];
+            Log::error('DB error en MessageRepositoryDb::getRejected', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido acceder a la base de datos. Inténtalo más tarde.');
         }
     }
 
     /**
      * Aprueba un mensaje: cambia su status a 'published'.
-     * Acción típica de moderación (rol profesor).
      */
     public function approve(string|int $id): void
     {
@@ -217,13 +225,13 @@ class MessageRepositoryDb implements IMessageRepository
                 ->where('idMessage', (int)$id)
                 ->update(['status' => 'published']);
         } catch (QueryException $e) {
-            // no-op
+            Log::error('DB error en MessageRepositoryDb::approve', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido guardar cambios en la base de datos. Inténtalo más tarde.');
         }
     }
 
     /**
      * Rechaza un mensaje: cambia su status a 'rejected'.
-     * Acción típica de moderación (rol profesor).
      */
     public function reject(string|int $id): void
     {
@@ -232,12 +240,13 @@ class MessageRepositoryDb implements IMessageRepository
                 ->where('idMessage', (int)$id)
                 ->update(['status' => 'rejected']);
         } catch (QueryException $e) {
-            // no-op
+            Log::error('DB error en MessageRepositoryDb::reject', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido guardar cambios en la base de datos. Inténtalo más tarde.');
         }
     }
 
     /**
-     * Borrado lógico del mensaje (especialización):
+     * Borrado lógico del mensaje:
      * - isDeleted = 1
      * - deletedAt = NOW()
      * - status = 'deleted'
@@ -250,10 +259,11 @@ class MessageRepositoryDb implements IMessageRepository
                 ->update([
                     'isDeleted' => 1,
                     'deletedAt' => now(),
-                    'status' => 'deleted',
+                    'status'    => 'deleted',
                 ]);
         } catch (QueryException $e) {
-            // no-op (o registrar el error en logs si se quiere)
+            Log::error('DB error en MessageRepositoryDb::delete', ['error' => $e->getMessage()]);
+            throw new DatabaseUnavailableException('No se ha podido guardar cambios en la base de datos. Inténtalo más tarde.');
         }
     }
 }
