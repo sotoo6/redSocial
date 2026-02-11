@@ -1,5 +1,13 @@
 <?php
 
+/**
+ * Controlador de autenticación.
+ *
+ * Gestiona registro, inicio de sesión y cierre de sesión.
+ *
+ * @package App\Http\Controllers
+ */
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
@@ -7,8 +15,18 @@ use App\Contracts\IUserRepository;
 use App\Models\User;
 use App\Exceptions\DatabaseUnavailableException;
 
+/**
+ * Controlador encargado de la autenticación de usuarios.
+ *
+ * @package App\Http\Controllers
+ */
 class AuthController extends Controller
 {
+    /**
+     * Repositorio de usuarios
+     *
+     * @var \App\Contracts\IUserRepository
+     */
     private IUserRepository $users;
 
     /**

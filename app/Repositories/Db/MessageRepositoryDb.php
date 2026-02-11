@@ -1,5 +1,21 @@
 <?php
 
+/**
+ * Repositorio de mensajes basado en Base de Datos.
+ *
+ * Implementación de {@see \App\Contracts\IMessageRepository} que utiliza el Query Builder
+ * de Laravel para consultar e insertar datos en las tablas de MySQL/MariaDB.
+ *
+ * Consideraciones de seguridad:
+ * - Se usa Query Builder con parámetros (evita concatenación de SQL con datos del usuario).
+ *
+ * Manejo de errores:
+ * - Se captura {@see \Illuminate\Database\QueryException}, se registra el error en logs
+ *   y se lanza {@see \App\Exceptions\DatabaseUnavailableException} con un mensaje genérico.
+ *
+ * @package App\Repositories\Db
+ */
+
 namespace App\Repositories\Db;
 
 use App\Contracts\IMessageRepository;
@@ -11,19 +27,18 @@ use App\Exceptions\DatabaseUnavailableException;
 /**
  * Repositorio de mensajes usando SGBD (MySQL/MariaDB).
  *
- * Protección contra SQL Injection:
- * - Se usa Query Builder (DB::table()) con condiciones parametrizadas.
- * - No se concatenan strings SQL con inputs del usuario.
- *
- * Manejo de errores de conexión/consulta:
- * - Captura QueryException, registra el detalle en logs y lanza DatabaseUnavailableException
- *   con mensaje genérico (no expone SQL/host/credenciales).
+ * Proporciona operaciones de lectura y escritura sobre la tabla `messages`
+ * (y `users` para obtener el nombre del autor) siguiendo un esquema de
+ * borrado lógico mediante los campos `isDeleted` y `deletedAt`.
  */
 class MessageRepositoryDb implements IMessageRepository
 {
     /**
-     * Devuelve todos los mensajes NO borrados (cualquier estado).
-     * Se usa para listados generales.
+     * Obtiene todos los mensajes no borrados (independientemente de su estado).
+     * Se usa para listados generales. Incluye el nombre del autor mediante join con `users`.
+     *
+     * @return array<int, array<string, mixed>> Lista de mensajes como arrays asociativos.
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function all(): array
     {
@@ -41,7 +56,7 @@ class MessageRepositoryDb implements IMessageRepository
                     'messages.status',
                     'messages.createdAt',
                 ])
-                ->map(fn($m) => (array)$m)
+                ->map(fn ($m) => (array) $m)
                 ->toArray();
         } catch (QueryException $e) {
             Log::error('DB error en MessageRepositoryDb::all', ['error' => $e->getMessage()]);
@@ -50,15 +65,21 @@ class MessageRepositoryDb implements IMessageRepository
     }
 
     /**
-     * Busca un mensaje por id.
-     * Incluye el estado de borrado (isDeleted y deletedAt) por si hay que comprobar permisos o depurar.
+     * Busca un mensaje por su identificador.
+     *
+     * Incluye información de borrado lógico (`isDeleted`, `deletedAt`) para permitir
+     * comprobaciones de permisos o depuración.
+     *
+     * @param string $id Identificador del mensaje (se castea a int para la consulta).
+     * @return array<string, mixed>|null Mensaje encontrado o null si no existe.
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function find(string $id): ?array
     {
         try {
             $row = DB::table('messages')
                 ->join('users', 'messages.idUser', '=', 'users.idUser')
-                ->where('messages.idMessage', (int)$id) // cast + parámetro (evita injection)
+                ->where('messages.idMessage', (int) $id)
                 ->first([
                     'messages.idMessage as id',
                     'messages.idUser as idUser',
@@ -71,7 +92,7 @@ class MessageRepositoryDb implements IMessageRepository
                     'messages.deletedAt',
                 ]);
 
-            return $row ? (array)$row : null;
+            return $row ? (array) $row : null;
         } catch (QueryException $e) {
             Log::error('DB error en MessageRepositoryDb::find', ['error' => $e->getMessage()]);
             throw new DatabaseUnavailableException('No se ha podido acceder a la base de datos. Inténtalo más tarde.');
@@ -80,7 +101,16 @@ class MessageRepositoryDb implements IMessageRepository
 
     /**
      * Inserta un mensaje nuevo en la tabla `messages`.
-     * Espera: idUser, subject, content y opcional status.
+     *
+     * Campos esperados en $message:
+     * - idUser (int|string)
+     * - subject (string)
+     * - content (string)
+     * - status (string) [opcional, por defecto 'pending']
+     *
+     * @param array<string, mixed> $message Datos del mensaje a insertar.
+     * @return void
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function save(array $message): void
     {
@@ -102,8 +132,17 @@ class MessageRepositoryDb implements IMessageRepository
 
     /**
      * Actualiza un mensaje existente.
-     * Acepta el id con clave 'id' o 'idMessage' (compatibilidad).
-     * También acepta 'text' (antiguo) como equivalente de 'content'.
+     *
+     * Compatibilidad de claves:
+     * - id: acepta 'id' o 'idMessage'
+     * - contenido: acepta 'content' o 'text'
+     *
+     * Solo actualiza las claves presentes (subject/content/status). Si no hay campos a actualizar,
+     * o si no hay id, no realiza ninguna operación.
+     *
+     * @param array<string, mixed> $message Datos del mensaje a actualizar.
+     * @return void
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function update(array $message): void
     {
@@ -130,8 +169,12 @@ class MessageRepositoryDb implements IMessageRepository
     }
 
     /**
-     * Devuelve mensajes publicados (status='published') y NO borrados.
-     * Se usa en la portada (home).
+     * Obtiene los mensajes publicados y no borrados.
+     *
+     * Se usa típicamente en la portada (home).
+     *
+     * @return array<int, array<string, mixed>> Lista de mensajes publicados.
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function getPublished(): array
     {
@@ -159,8 +202,12 @@ class MessageRepositoryDb implements IMessageRepository
     }
 
     /**
-     * Devuelve mensajes pendientes (status='pending') y NO borrados.
-     * Se usa en la vista de moderación del profesor.
+     * Obtiene los mensajes pendientes y no borrados.
+     *
+     * Se usa en la vista de moderación.
+     *
+     * @return array<int, array<string, mixed>> Lista de mensajes pendientes.
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function getPending(): array
     {
@@ -188,7 +235,10 @@ class MessageRepositoryDb implements IMessageRepository
     }
 
     /**
-     * Devuelve mensajes rechazados (status='rejected') y NO borrados.
+     * Obtiene los mensajes rechazados y no borrados.
+     *
+     * @return array<int, array<string, mixed>> Lista de mensajes rechazados.
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function getRejected(): array
     {
@@ -216,7 +266,11 @@ class MessageRepositoryDb implements IMessageRepository
     }
 
     /**
-     * Aprueba un mensaje: cambia su status a 'published'.
+     * Aprueba un mensaje (cambia su estado a 'published').
+     *
+     * @param string|int $id Identificador del mensaje.
+     * @return void
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function approve(string|int $id): void
     {
@@ -231,13 +285,17 @@ class MessageRepositoryDb implements IMessageRepository
     }
 
     /**
-     * Rechaza un mensaje: cambia su status a 'rejected'.
+     * Rechaza un mensaje (cambia su estado a 'rejected').
+     *
+     * @param string|int $id Identificador del mensaje.
+     * @return void
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function reject(string|int $id): void
     {
         try {
             DB::table('messages')
-                ->where('idMessage', (int)$id)
+                ->where('idMessage', (int) $id)
                 ->update(['status' => 'rejected']);
         } catch (QueryException $e) {
             Log::error('DB error en MessageRepositoryDb::reject', ['error' => $e->getMessage()]);
@@ -246,10 +304,16 @@ class MessageRepositoryDb implements IMessageRepository
     }
 
     /**
-     * Borrado lógico del mensaje:
+     * Realiza el borrado lógico de un mensaje.
+     *
+     * Cambios aplicados:
      * - isDeleted = 1
-     * - deletedAt = NOW()
+     * - deletedAt = now()
      * - status = 'deleted'
+     *
+     * @param string|int $id Identificador del mensaje.
+     * @return void
+     * @throws DatabaseUnavailableException Si ocurre un error de base de datos.
      */
     public function delete(string|int $id): void
     {

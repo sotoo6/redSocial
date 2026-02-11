@@ -1,13 +1,32 @@
 <?php
 
+/**
+ * Controlador de tema visual.
+ *
+ * Permite alternar entre modo claro y oscuro guardando preferencia en sesión,
+ * cookie y almacenamiento persistente.
+ *
+ * @package App\Http\Controllers
+ */
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Contracts\IUserRepository;
 use App\Exceptions\DatabaseUnavailableException;
 
+/**
+ * Controlador que gestiona el tema visual (light/dark).
+ *
+ * @package App\Http\Controllers
+ */
 class ThemeController extends Controller
 {
+    /**
+     * Repositorio de usuarios
+     *
+     * @var \App\Contracts\IUserRepository
+     */
     private IUserRepository $users;
 
     /**

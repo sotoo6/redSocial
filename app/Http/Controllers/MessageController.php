@@ -1,21 +1,53 @@
 <?php
 
+/**
+ * Controlador de mensajes.
+ *
+ * Gestiona la publicación de mensajes, la cola de moderación y acciones CRUD
+ * asociadas (crear, listar, actualizar y borrado lógico).
+ *
+ * @package App\Http\Controllers
+ */
+
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Contracts\IMessageRepository;
 use App\Exceptions\DatabaseUnavailableException;
 
+/**
+ * Controlador encargado de las operaciones de mensajes.
+ *
+ * @package App\Http\Controllers
+ */
 class MessageController extends Controller
 {
+    /**
+     * Repositorio de mensajes
+     *
+     * @var \App\Contracts\IMessageRepository
+     */
     private IMessageRepository $messages;
+
+    /**
+     * Inyecta el repositorio de mensajes.
+     *
+     * @param \App\Contracts\IMessageRepository $messages
+     * @return void
+     */
 
     public function __construct(IMessageRepository $messages)
     {
         $this->messages = $messages;
     }
 
-    // Mostrar mensajes publicados (home)
+    /**
+     * Muestra la portada con mensajes publicados y filtro por asignatura.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\View\View
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
     public function index(Request $request)
     {
         $subject = $request->query('subject', 'todas');
@@ -48,13 +80,23 @@ class MessageController extends Controller
         return view('messages.index', compact('messages', 'subjects'));
     }
 
-    // Formulario nuevo mensaje
+    /**
+     * Muestra el formulario para crear un nuevo mensaje.
+     * @return \Illuminate\View\View
+     */
     public function showNewForm()
     {
         return view('messages.new_message');
     }
 
     // Guardar nuevo mensaje
+    /**
+     * Valida y guarda un nuevo mensaje (estado pending/rejected según validación).
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
     public function create(Request $request)
     {
         $data = $request->validate([
@@ -112,7 +154,11 @@ class MessageController extends Controller
         );
     }
 
-    // Cola de moderación
+    /**
+     * Muestra la cola de moderación (mensajes pendientes).
+     * @return \Illuminate\View\View
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
     public function moderation()
     {
         try {
@@ -127,7 +173,13 @@ class MessageController extends Controller
         return view('messages.moderation', compact('pendingMessages'));
     }
 
-    // Aprobar mensaje
+    /**
+     * Aprueba (publica) un mensaje.
+     *
+     * @param string|int $id Identificador del mensaje.
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
     public function approve($id)
     {
         try {
@@ -139,7 +191,13 @@ class MessageController extends Controller
         return redirect('/moderation');
     }
 
-    // Rechazar mensaje
+    /**
+     * Rechaza un mensaje.
+     *
+     * @param string|int $id Identificador del mensaje.
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
     public function reject($id)
     {
         try {
@@ -151,7 +209,14 @@ class MessageController extends Controller
         return redirect('/moderation');
     }
 
-    // Borrar mensaje
+    /**
+     * Borra (lógicamente) un mensaje si pertenece al usuario autenticado.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param string|int $id Identificador del mensaje.
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
     public function delete(Request $request, $id)
     {
         try {
@@ -182,6 +247,14 @@ class MessageController extends Controller
 
         return redirect('/')->with('status', 'Mensaje borrado correctamente.');
     }
+
+    /**
+     * Actualiza un mensaje existente y lo devuelve a estado pendiente.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
 
     public function update(Request $request)
     {
@@ -230,6 +303,12 @@ class MessageController extends Controller
 
         return redirect('/')->with('status', 'Tu mensaje actualizado está pendiente de moderación.');
     }
+
+    /**
+     * Muestra mensajes rechazados.
+     * @return \Illuminate\View\View
+     * @throws \App\Exceptions\DatabaseUnavailableException
+     */
 
     public function invalid()
     {

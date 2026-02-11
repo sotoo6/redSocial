@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Repositorio de mensajes basado en JSON.
+ *
+ * Implementa IMessageRepository persistiendo datos en un fichero JSON dentro de
+ * storage/app/data.
+ *
+ * @package App\Repositories\Json
+ */
+
 namespace App\Repositories\Json;
 
 use App\Contracts\IMessageRepository;
@@ -11,8 +20,14 @@ use App\Contracts\IMessageRepository;
 class MessageRepositoryJson implements IMessageRepository
 {
     // Ruta absoluta al archivo JSON donde se guardan los mensajes
+    /** @var string Ruta absoluta al fichero JSON de mensajes. */
     private string $file;
     private string $deletedFile;
+
+    /**
+     * Inicializa la ruta del fichero JSON de mensajes.
+     * @return void
+     */
 
     public function __construct()
     {
@@ -148,6 +163,13 @@ class MessageRepositoryJson implements IMessageRepository
         $this->update($msg);
     }
 
+    /**
+     * Elimina (lógicamente) un mensaje o lo marca como borrado.
+     *
+     * @param string|int $id
+     * @return void
+     */
+
     public function delete(string|int $id): void
     {
         $id = (string)$id;
@@ -183,6 +205,11 @@ class MessageRepositoryJson implements IMessageRepository
 
         $this->writeJsonFile($this->deletedFile, $deleted);
     }
+
+    /**
+     * Devuelve mensajes con status 'rejected'.
+     * @return array<int, array<string, mixed>>
+     */
 
     public function getRejected(): array
     {

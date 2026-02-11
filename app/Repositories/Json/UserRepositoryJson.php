@@ -1,5 +1,14 @@
 <?php
 
+/**
+ * Repositorio de usuarios basado en JSON.
+ *
+ * Implementa IUserRepository persistiendo datos en un fichero JSON dentro de
+ * storage/app/data.
+ *
+ * @package App\Repositories\Json
+ */
+
 namespace App\Repositories\Json;
 
 use App\Contracts\IUserRepository;
@@ -11,7 +20,13 @@ use App\Contracts\IUserRepository;
 class UserRepositoryJson implements IUserRepository
 {
     // Ruta al archivo JSON donde se almacenan los usuarios
+    /** @var string Ruta absoluta al fichero JSON de usuarios. */
     private string $file;
+
+    /**
+     * Inicializa la ruta del fichero JSON de usuarios.
+     * @return void
+     */
 
     public function __construct()
     {   

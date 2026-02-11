@@ -9,6 +9,11 @@ class CheckRole
 {
     /**
      * Permite acceso solo si el usuario tiene el rol indicado.
+     *
+     * @param \Illuminate\Http\Request $request
+     * @param \Closure $next
+     * @param string $role Rol requerido para acceder a la ruta.
+     * @return mixed
      */
     public function handle(Request $request, Closure $next, string $role)
     {

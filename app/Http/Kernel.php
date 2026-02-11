@@ -1,9 +1,22 @@
 <?php
 
+/**
+ * Kernel HTTP de la aplicación.
+ *
+ * Registra middleware global, grupos y alias de middleware.
+ *
+ * @package App\Http
+ */
+
 namespace App\Http;
 
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
+/**
+ * Kernel HTTP.
+ *
+ * @package App\Http
+ */
 class Kernel extends HttpKernel
 {
     /**
